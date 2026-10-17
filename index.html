@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>כספי הבית</title>
-<meta name="theme-color" content="#0A5C45">
+<meta name="theme-color" content="#1C3B8F">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -13,9 +13,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --brand:#0A5C45; --brand2:#11806A; --brand-soft:#E2F0EB;
-  --bg:#EDF1EF; --card:#FFFFFF; --text:#13201B; --muted:#66736D; --line:#E4E9E6;
-  --neg:#13201B; --pos:#0E8A5F; --red:#C4372A; --maa:#A86A00; --maa-soft:#FBF0D9;
+  --brand:#1C3B8F; --brand2:#2E5FD8; --brand-soft:#E5ECFB;
+  --bg:#EEF1F7; --card:#FFFFFF; --text:#141A2E; --muted:#646B80; --line:#E4E7EF;
+  --neg:#141A2E; --pos:#0E8A5F; --red:#C4372A; --maa:#A86A00; --maa-soft:#FBF0D9;
 }
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg)}
@@ -54,7 +54,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .actions-row{display:flex;gap:8px;margin-bottom:12px}
 .act{flex:1;border:0;background:var(--card);border-radius:16px;padding:12px 6px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:14px}
 .act span{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-size:18px}
-.act.cash span{background:#E5EEFA}.act.maa span{background:var(--maa-soft)}.act.oth span{background:var(--brand-soft)}
+.act.cash span{background:#E3F4EA}.act.maa span{background:var(--maa-soft)}.act.oth span{background:var(--brand-soft)}
 .cr{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;padding:7px 0;cursor:pointer}
 .cr .ic{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:16px}
 .cr .bk{height:5px;border-radius:3px;background:var(--line);margin-top:5px;overflow:hidden}
@@ -71,6 +71,9 @@ button,input,select,textarea{font:inherit;color:inherit}
 .row.income .a{color:var(--pos)}.row.maaser .a{color:var(--maa)}
 .row .a small{display:block;font-size:11.5px;font-weight:500;color:var(--muted)}
 .empty{color:var(--muted);text-align:center;padding:22px 0}
+.pend-h{display:flex;justify-content:space-between;align-items:baseline;font-weight:700;padding:10px 0 2px}
+.pend-h span{font-weight:500;font-size:13px;color:var(--muted)}
+.compare{font-size:13.5px;margin-top:8px;padding:9px 12px;border-radius:12px;background:var(--bg)}
 .muted{color:var(--muted);font-size:13.5px}
 .mb{display:grid;grid-template-columns:58px 1fr;gap:4px 10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);cursor:pointer}
 .mb .m{font-weight:700;grid-row:span 2}
@@ -102,7 +105,7 @@ nav.bn button{flex:1;border:0;background:none;padding:8px 0 9px;color:var(--mute
 nav.bn svg{width:22px;height:22px}
 nav.bn button.on{color:var(--brand);font-weight:700}
 .badge{position:absolute;top:3px;left:calc(50% - 22px);background:var(--red);color:#fff;border-radius:999px;font-size:10px;padding:0 5px;font-weight:700}
-.mbg{position:fixed;inset:0;background:rgba(10,30,22,.45);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.mbg{position:fixed;inset:0;background:rgba(14,22,48,.45);z-index:20;display:flex;align-items:flex-end;justify-content:center}
 @media(min-width:700px){.mbg{align-items:center}}
 .modal{background:var(--bg);width:100%;max-width:520px;max-height:94vh;overflow:auto;border-radius:24px 24px 0 0;padding:0 0 20px}
 @media(min-width:700px){.modal{border-radius:24px}}
@@ -127,7 +130,7 @@ nav.bn button.on{color:var(--brand);font-weight:700}
 .check{display:flex;align-items:center;gap:9px;margin-top:13px;font-size:14.5px}.check input{width:20px;height:20px}
 .mfoot{display:flex;gap:8px;margin-top:18px}.mfoot .btn{flex:1}.mfoot .btn.red{flex:none}
 .hidden{display:none!important}
-.toast{position:fixed;bottom:84px;left:50%;transform:translateX(-50%);background:#13201B;color:#fff;padding:10px 18px;border-radius:999px;z-index:40;font-size:14px;opacity:0;transition:.25s;pointer-events:none;max-width:90vw;text-align:center}
+.toast{position:fixed;bottom:84px;left:50%;transform:translateX(-50%);background:#141A2E;color:#fff;padding:10px 18px;border-radius:999px;z-index:40;font-size:14px;opacity:0;transition:.25s;pointer-events:none;max-width:90vw;text-align:center}
 .toast.on{opacity:1}
 .login{max-width:360px;margin:0 auto;padding:22vh 20px 0;text-align:center}
 .login h1{color:var(--brand);font-size:30px}
@@ -211,7 +214,9 @@ async function loadYear() {
   const [a, b] = yearRange(S.hy);
   const [t, m, bk] = await Promise.all([api(`/api/tx?from=${a}&to=${b}`), api('/api/maaser'), api(`/api/bank?from=${a}&to=${b}`)]);
   S.txs = t.items; S.maaser = m; S.bank = bk.items;
+  BANK_BY_ID = {}; S.bank.forEach(b => BANK_BY_ID[b.id] = b);
 }
+let BANK_BY_ID = {};
 async function reloadAll() {
   await loadBoot();
   if (S.boot.pending > 0) { try { await api('/api/bank/process', { method: 'POST' }); await loadBoot(); } catch (e) {} }
@@ -235,11 +240,12 @@ function suggest(text, type) {
 function sums(list) { const r = { income: 0, expense: 0, maaser: 0, liable: 0 }; list.forEach(t => { r[t.type] += t.amount; if (t.type === 'income' && t.maaser_liable) r.liable += t.amount; }); return r; }
 const inMonth = (list, m) => list.filter(t => hMonth(t.date) === m);
 function bankBalance() {
-  const accs = (S.boot.accounts || []).filter(a => !CARD_SOURCES.includes(a.source));
+  const all = (S.boot.accounts || []).filter(a => !CARD_SOURCES.includes(a.source));
+  const accs = all.filter(a => !a.savings), sav = all.filter(a => a.savings);
   if (!accs.length) return null;
   const upcoming = (S.boot.upcoming || []).reduce((a, u) => a + u.s, 0);
   const total = accs.reduce((a, x) => a + x.balance, 0);
-  return { total, upcoming, after: total + upcoming, upd: accs.map(a => a.updated_at).sort().pop() };
+  return { total, upcoming, after: total + upcoming, savings: sav.reduce((a, x) => a + x.balance, 0), hasSav: sav.length > 0, upd: accs.map(a => a.updated_at).sort().pop() };
 }
 function ago(iso) { const min = Math.round((Date.now() - new Date(iso)) / 6e4); if (min < 2) return 'עכשיו'; if (min < 60) return `לפני ${min} דקות`; const h = Math.round(min / 60); if (h < 24) return `לפני ${h} שעות`; return `לפני ${Math.round(h / 24)} ימים`; }
 
@@ -273,7 +279,7 @@ function heroHTML(full) {
       <button class="ib" onclick="go('settings')" title="הגדרות" aria-label="הגדרות"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M2.5 12h3M18.5 12h3M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg></button></div>`;
   if (!full) return `<div class="hero" style="padding-bottom:14px">${top}${S.syncMsg ? `<div class="upd">${S.syncMsg}</div>` : ''}</div>`;
   const bal = b ? `<div class="bal-l">בחשבון עכשיו</div><div class="bal">${M0(b.total)}</div>
-      <div class="bal-sub"><div>אשראי שעוד לא ירד<b class="num">₪${fmt0(-b.upcoming)}</b></div><div>אחרי האשראי<b>${M0(b.after)}</b></div></div>
+      <div class="bal-sub"><div>אשראי שעוד לא ירד<b class="num">₪${fmt0(-b.upcoming)}</b></div><div>אחרי האשראי<b>${M0(b.after)}</b></div>${b.hasSav ? `<div>בחסכונות<b>${M0(b.savings)}</b></div>` : ''}</div>
       <div class="upd">${S.syncMsg ? S.syncMsg : 'עודכן ' + ago(b.upd)}</div>`
     : `<div class="bal-l">בחשבון עכשיו</div><div style="font-size:20px;font-weight:700;margin-top:4px">לחץ על כפתור העדכון כדי לראות את היתרה</div>${S.syncMsg ? `<div class="upd">${S.syncMsg}</div>` : ''}`;
   return `<div class="hero">${top}${bal}</div>`;
@@ -294,12 +300,48 @@ function homeHTML() {
     <button class="act maa" onclick="openTx({type:'maaser'})"><span>🪙</span>מעשרות</button>
     <button class="act oth" onclick="openTx({type:'expense'})"><span>＋</span>רישום אחר</button>
   </div>
-  <div class="panel"><div class="sum4">
-    <div class="p">נכנס<b>${M0(s.income)}</b></div><div>יצא<b>${M0(s.expense)}</b></div><div class="m">מעשרות<b>${M0(s.maaser)}</b></div><div>נשאר<b>${M0(s.income - s.expense - s.maaser)}</b></div>
-  </div></div>
   ${crs.length ? `<div class="panel"><div class="ph"><h2>לאן הלך הכסף ב${esc(S.month)}</h2></div>${catRows(crs, s.expense, S.month)}</div>` : ''}
   <div class="panel"><div class="ph"><h2>תנועות ב${esc(S.month)}</h2><button class="l" onclick="S.filter={type:'',cat:'',month:'${S.month}',q:''};go('list')">חיפוש</button></div>
-    ${statement(list) || `<div class="empty">אין תנועות בחודש הזה. לחץ על העדכון למעלה כדי למשוך מהבנק ומהאשראי.</div>`}</div>`;
+    ${statement(list.filter(t => !pendingInfo(t))) || `<div class="empty">אין תנועות בחודש הזה. לחץ על העדכון למעלה כדי למשוך מהבנק ומהאשראי.</div>`}</div>
+  ${pendingHTML(list)}
+  ${monthDataHTML(list)}`;
+}
+// עסקת אשראי שעוד לא ירדה מהחשבון: מתי ומאיזה כרטיס
+function pendingInfo(t) {
+  if (!t.bank_id) return null;
+  const b = BANK_BY_ID[t.bank_id];
+  if (!b || !CARD_SOURCES.includes(b.source) || !b.processed_date || b.processed_date <= todayIso()) return null;
+  return { date: b.processed_date, card: (SRC_NAME[b.source] || b.source) + ' ' + String(b.account || '').slice(-4) };
+}
+function pendingHTML(list) {
+  const groups = {};
+  list.forEach(t => { const p = pendingInfo(t); if (!p) return; const k = p.date + '|' + p.card; (groups[k] = groups[k] || { ...p, items: [] }).items.push(t); });
+  const keys = Object.keys(groups).sort();
+  if (!keys.length) return '';
+  return `<div class="panel"><div class="ph"><h2>חיובי אשראי שעוד יירדו</h2></div>
+    <p class="muted" style="margin:0 0 4px">עסקאות ותשלומים שכבר נעשו, וירדו מהחשבון בתאריך החיוב של הכרטיס.</p>
+    ${keys.map(k => { const g = groups[k]; const sum = g.items.reduce((a, t) => a + (t.type === 'income' ? -t.amount : t.amount), 0);
+      return `<div class="pend-h"><div>יירד ב-${gDate(g.date)} (${hDate(g.date)})<br><span>${esc(g.card)}, ${g.items.length} עסקאות</span></div><div class="num">₪${fmt(sum)}</div></div>${g.items.map(rowHTML).join('')}`; }).join('')}</div>`;
+}
+function monthDataHTML(list) {
+  const s = sums(list);
+  if (!list.length) return '';
+  const byG = {}, byP = {};
+  list.filter(t => t.type === 'expense').forEach(t => { const g = catById(t.category_id)?.grp || 'שוטפות'; byG[g] = (byG[g] || 0) + t.amount; const pm = t.payment_method || 'אחר'; byP[pm] = (byP[pm] || 0) + t.amount; });
+  const ms = yearMonths(S.hy), i = ms.indexOf(S.month);
+  const prev = i > 0 ? sums(inMonth(S.txs, ms[i - 1])) : null;
+  const days = new Set(list.map(t => t.date)).size || 1;
+  const first = list.reduce((a, t) => t.date < a ? t.date : a, '9999'), last = list.reduce((a, t) => t.date > a ? t.date : a, '');
+  const span = Math.max(1, Math.round((isoToDate(last) - isoToDate(first)) / 864e5) + 1);
+  let cmp = '';
+  if (prev && prev.expense) { const d = s.expense - prev.expense; cmp = `<div class="compare">לעומת ${ms[i - 1]}: יצא ${M0(Math.abs(d))} ${d > 0 ? 'יותר' : 'פחות'} (${M0(prev.expense)} ב${ms[i - 1]})</div>`; }
+  return `<div class="panel"><div class="ph"><h2>נתוני החודש</h2><span class="muted">${esc(S.month)} ${gem(S.hy)}</span></div>
+    <div class="sum4" style="margin:4px 0 10px">
+      <div class="p">נכנס<b>${M0(s.income)}</b></div><div>יצא<b>${M0(s.expense)}</b></div><div class="m">מעשרות<b>${M0(s.maaser)}</b></div><div>נשאר<b>${M0(s.income - s.expense - s.maaser)}</b></div></div>
+    ${GROUPS.filter(g => byG[g]).map(g => `<div class="kv"><span><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${GCOL[g]};margin-inline-end:6px"></span>הוצאות ${g}</span><b>${M(byG[g])}</b></div>`).join('')}
+    ${Object.entries(byP).sort((a, b) => b[1] - a[1]).map(([p, v]) => `<div class="kv"><span>שולם ב${esc(p === 'בנק' ? 'עו"ש' : p)}</span><b>${M(v)}</b></div>`).join('')}
+    <div class="kv"><span>ממוצע הוצאה ליום</span><b>${M0(s.expense / span)}</b></div>
+    ${cmp}</div>`;
 }
 function catRows(crs, total, month) {
   const max = crs[0][1] || 1;
@@ -412,21 +454,34 @@ function checkHTML() {
 }
 async function bankAct(id, act) { try { await api(`/api/bank/${id}/${act}`, { method: 'POST' }); await loadBoot(); await loadYear(); render(); toast(act === 'count' ? 'נספר' : 'עודכן'); } catch (e) { toast(e.message); } }
 async function bankFile(inp) { const f = inp.files[0]; if (!f) return; try { const r = await api('/api/bank/import', { method: 'POST', body: JSON.parse(await f.text()) }); toast(`נוספו ${r.added} תנועות`); await reloadAll(); } catch (e) { toast('שגיאה: ' + e.message); } }
+async function bridgeStatus(ms) {
+  try { const ctl = new AbortController(); const h = setTimeout(() => ctl.abort(), ms || 2500); const r = await fetch(BRIDGE + '/api/status', { signal: ctl.signal }); clearTimeout(h); return await r.json(); } catch { return null; }
+}
 async function bridgeUpdate() {
   if (S.syncing) return;
-  let st;
-  try { const ctl = new AbortController(); setTimeout(() => ctl.abort(), 2500); st = await (await fetch(BRIDGE + '/api/status', { signal: ctl.signal })).json(); }
-  catch (e) { S.syncMsg = 'הגשר לא עונה. העדכון עובד רק מהמחשב שהגשר מותקן עליו.'; go('home'); return; }
-  if (!st.accounts || !st.accounts.length) { S.syncMsg = 'לא הוגדרו חשבונות בגשר'; go('home'); return; }
-  S.syncing = true; S.syncMsg = 'מתחבר לבנק ולאשראי, זה לוקח בערך דקה…'; go('home');
+  S.syncing = true; S.syncMsg = 'בודק את הגשר…'; go('home');
+  let st = await bridgeStatus();
+  if (!st) {
+    // הגשר לא רץ: מבקשים מ-Windows להפעיל אותו (בפעם הראשונה הדפדפן ישאל אם לפתוח, אפשר לסמן "תמיד")
+    S.syncMsg = 'מפעיל את הגשר במחשב…'; render();
+    const fr = document.createElement('iframe'); fr.style.display = 'none'; fr.src = 'kaspeibayit://start'; document.body.appendChild(fr);
+    setTimeout(() => fr.remove(), 3000);
+    for (let i = 0; i < 20 && !st; i++) { await new Promise(r => setTimeout(r, 1500)); st = await bridgeStatus(1200); }
+  }
+  if (!st) { S.syncing = false; S.syncMsg = 'הגשר לא עלה. במחשב שהגשר מותקן עליו, הרץ פעם אחת את update.bat מתיקיית הגשר.'; render(); return; }
+  if (!st.accounts || !st.accounts.length) { S.syncing = false; S.syncMsg = 'לא הוגדרו חשבונות בגשר'; render(); return; }
+  S.syncMsg = 'מתחבר לבנק ולאשראי, זה לוקח בערך דקה…'; render();
   try {
     const r = await fetch(BRIDGE + '/api/scrape', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
     const d = await r.json(); if (!r.ok) throw new Error(d.error || 'שגיאה');
     const bad = d.results.filter(x => !x.ok), added = d.results.reduce((a, x) => a + (x.added || 0), 0);
-    S.syncMsg = (added ? `נוספו ${added} תנועות חדשות` : 'אין תנועות חדשות') + (bad.length ? `. לא הצליח: ${bad.map(x => esc(x.label) + ' (' + esc(x.error) + ')').join(', ')}` : '');
+    const noBal = d.results.filter(x => x.ok && !x.card && x.balance == null);
+    S.syncMsg = (added ? `נוספו ${added} תנועות חדשות` : 'אין תנועות חדשות')
+      + (bad.length ? `. לא הצליח: ${bad.map(x => esc(x.label) + ' (' + esc(x.error) + ')').join(', ')}` : '')
+      + (!st.version || st.version < 3 ? '. הגשר בגרסה ישנה ולכן אין יתרה: הרץ update.bat אחרי שהחלפת את הקבצים' : noBal.length ? `. ${noBal.map(x => esc(x.label)).join(', ')} לא החזיר יתרה` : '');
   } catch (e) { S.syncMsg = esc(e.message); }
   S.syncing = false; await reloadAll();
-  setTimeout(() => { S.syncMsg = ''; if (S.view === 'home' && !$('#mbg')) render(); }, 9000);
+  setTimeout(() => { S.syncMsg = ''; if (S.view === 'home' && !$('#mbg')) render(); }, 12000);
 }
 
 // ---------- התחייבויות ----------
