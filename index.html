@@ -302,8 +302,20 @@ function homeHTML() {
   </div>
   <div class="panel"><div class="ph"><h2>תנועות ב${esc(S.month)}</h2><button class="l" onclick="S.filter={type:'',cat:'',month:'${S.month}',q:''};go('list')">חיפוש</button></div>
     ${statement(list.filter(t => !pendingInfo(t))) || `<div class="empty">אין תנועות בחודש הזה. לחץ על העדכון למעלה כדי למשוך מהבנק ומהאשראי.</div>`}</div>
-  ${pendingHTML(list)}
-  ${monthDataHTML(list, crs)}`;
+  ${safe(() => pendingHTML(list))}
+  ${safe(() => monthIncomeHTML(list))}
+  ${safe(() => monthDataHTML(list, crs))}`;
+}
+const APP_VERSION = '17.10.26-ג';
+function safe(fn) { try { return fn(); } catch (e) { console.error(e); return `<div class="panel"><div class="muted">שגיאה בהצגת החלק הזה: ${esc(e.message)}</div></div>`; } }
+function monthIncomeHTML(list) {
+  const inc = list.filter(t => t.type === 'income').sort((a, b) => a.date.localeCompare(b.date));
+  const pct = (+S.boot.settings.maaser_percent || 10) / 100;
+  const liable = inc.filter(t => t.maaser_liable).reduce((a, t) => a + t.amount, 0), total = inc.reduce((a, t) => a + t.amount, 0);
+  return `<div class="panel"><div class="ph"><h2>הכנסות ב${esc(S.month)}</h2><b>${M(total)}</b></div>
+    ${inc.length ? inc.map(t => `<div class="kv" style="cursor:pointer" onclick="openTx(${t.id})"><span>${esc(t.description || 'הכנסה')}<br><span class="muted">${hDate(t.date)} (${gDate(t.date)})${t.maaser_liable ? '' : ', לא נספר למעשר'}</span></span><b style="color:${t.maaser_liable ? 'var(--pos)' : 'var(--muted)'}">${M(t.amount)}</b></div>`).join('')
+      + `<div class="kv"><span>מעשר מההכנסות של החודש (${M0(liable)})</span><b style="color:var(--maa)">${M(liable * pct)}</b></div>`
+      : '<div class="empty">לא נכנסו הכנסות בחודש הזה</div>'}</div>`;
 }
 // עסקת אשראי שעוד לא ירדה מהחשבון: מתי ומאיזה כרטיס
 function pendingInfo(t) {
@@ -575,7 +587,8 @@ function settingsHTML() {
   <div class="panel"><div class="ph"><h2>קטגוריות הכנסות</h2></div>${block('income')}<div style="display:flex;gap:8px;margin-top:10px"><input id="newInc" placeholder="קטגוריה חדשה"><button class="btn sm" onclick="catAdd('income','newInc')">הוספה</button></div></div>
   <div class="panel"><div class="ph"><h2>גיבוי וייבוא</h2></div><button class="btn soft" onclick="exportAll()">הורדת גיבוי</button>
     <label class="f">ייבוא מקובץ</label><input type="file" accept=".json" onchange="importFile(this)"><p class="muted">רישום שכבר מגיע מהבנק או מהאשראי לא ייכנס פעמיים.</p></div>
-  <button class="btn red" style="width:100%" onclick="logout()">יציאה</button>`;
+  <button class="btn red" style="width:100%" onclick="logout()">יציאה</button>
+  <p class="muted" style="text-align:center">גרסה ${APP_VERSION}</p>`;
 }
 async function catAdd(type, inp) { const n = $('#' + inp).value.trim(); if (!n) return; try { await api('/api/categories', { method: 'POST', body: { type, name: n } }); await loadBoot(); render(); } catch (e) { toast(e.message); } }
 async function catUpd(id, b) { try { await api('/api/categories/' + id, { method: 'PUT', body: b }); await loadBoot(); toast('נשמר'); } catch (e) { toast(e.message); } }
