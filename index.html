@@ -282,16 +282,17 @@ function heroHTML(full) {
   const b = bankBalance();
   const top = `<div class="htop"><div class="t">כספי הבית</div>
       <button class="ib ${S.syncing ? 'spin' : ''}" onclick="bridgeUpdate()" title="עדכון מהבנק ומהאשראי" aria-label="עדכון מהבנק"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 01-15.5 6.2M3 12A9 9 0 0118.5 5.8"/><path d="M18.5 2v3.8h-3.8M5.5 22v-3.8h3.8"/></svg></button>
+      <button class="ib" onclick="lockNow()" title="נעילה (צריך סיסמה כדי להיכנס שוב)" aria-label="נעילה"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 018 0v3"/></svg></button>
       <button class="ib" onclick="go('settings')" title="הגדרות" aria-label="הגדרות"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M2.5 12h3M18.5 12h3M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg></button></div>`;
-  if (!full) return `<div class="hero" style="padding-bottom:14px">${top}${S.syncMsg ? `<div class="upd">${S.syncMsg}</div>` : ''}</div>`;
+  if (!full) return `<div class="hero" style="padding-bottom:14px">${top}${S.progress ? `<div class="upd">מעדכן מהבנק ${S.progress.percent}%</div>` : S.syncMsg ? `<div class="upd">${S.syncMsg}</div>` : ''}</div>`;
   const bal = b ? `<div class="bal-l">בחשבון עכשיו</div><div class="bal">${M0(b.total)}</div>
       <div class="bal-sub"><div>אשראי שעוד לא ירד<b class="num">₪${fmt0(-b.upcoming)}</b></div><div>אחרי האשראי<b>${M0(b.after)}</b></div>${b.hasSav ? `<div>בחסכונות<b>${M0(b.savings)}</b></div>` : ''}</div>
-      <div class="upd">${S.syncMsg ? S.syncMsg : 'עודכן ' + ago(b.upd)}</div>`
-    : `<div class="bal-l">בחשבון עכשיו</div><div style="font-size:20px;font-weight:700;margin-top:4px">לחץ על כפתור העדכון כדי לראות את היתרה</div>${S.syncMsg ? `<div class="upd">${S.syncMsg}</div>` : ''}`;
+      ${S.progress ? progressHTML() : `<div class="upd">${S.syncMsg ? S.syncMsg : 'עודכן ' + ago(b.upd)}</div>`}`
+    : `<div class="bal-l">בחשבון עכשיו</div><div style="font-size:20px;font-weight:700;margin-top:4px">לחץ על כפתור העדכון כדי לראות את היתרה</div>${S.progress ? progressHTML() : S.syncMsg ? `<div class="upd">${S.syncMsg}</div>` : ''}`;
   return `<div class="hero">${top}${bal}</div>`;
 }
 function loginHTML() { return `<div class="login"><h1>כספי הבית</h1><form onsubmit="doLogin(event)"><input id="pw" type="password" autocomplete="current-password" placeholder="סיסמה"><button class="btn" style="width:100%;margin-top:12px">כניסה</button></form></div>`; }
-async function doLogin(e) { e.preventDefault(); try { const d = await api('/api/login', { method: 'POST', body: { password: $('#pw').value } }); S.token = d.token; lsSet('kb_token', d.token); render(); await reloadAll(); } catch (err) { toast(err.message); } }
+async function doLogin(e) { e.preventDefault(); try { const d = await api('/api/login', { method: 'POST', body: { password: $('#pw').value } }); S.token = d.token; lsSet('kb_token', d.token); touch(); render(); await reloadAll(); resumeSync(); } catch (err) { toast(err.message); } }
 function yearLine() { return `<div class="yearline"><button onclick="chYear(-1)">› ${gem(S.hy - 1)}</button><b>שנת ${gem(S.hy)}</b><button onclick="chYear(1)">${gem(S.hy + 1)} ‹</button></div>`; }
 function monthsStrip() { return `<div class="months">${yearMonths(S.hy).map(m => `<button class="mt ${m === S.month ? 'on' : ''}" onclick="setMonth('${m}')">${m}</button>`).join('')}</div>`; }
 
@@ -322,7 +323,7 @@ function incomeViewHTML() {
   <button class="btn" style="width:100%;margin-bottom:12px;background:var(--pos)" onclick="openTx({type:'income'})">+ רישום הכנסה</button>
   ${safe(() => monthIncomeHTML(inMonth(S.txs, S.month)))}${safe(() => incomesPanel())}`;
 }
-const APP_VERSION = '17.10.26-ה';
+const APP_VERSION = '17.10.26-ו';
 function safe(fn) { try { return fn(); } catch (e) { console.error(e); return `<div class="panel"><div class="muted">שגיאה בהצגת החלק הזה: ${esc(e.message)}</div></div>`; } }
 function monthIncomeHTML(list) {
   const inc = list.filter(t => t.type === 'income' && !t.flag).sort((a, b) => a.date.localeCompare(b.date));
@@ -523,19 +524,54 @@ async function bridgeUpdate() {
   }
   if (!st) { S.syncing = false; S.syncMsg = 'הגשר לא עלה. במחשב שהגשר מותקן עליו, הרץ פעם אחת את update.bat מתיקיית הגשר.'; render(); return; }
   if (!st.accounts || !st.accounts.length) { S.syncing = false; S.syncMsg = 'לא הוגדרו חשבונות בגשר'; render(); return; }
-  S.syncMsg = 'מתחבר לבנק ולאשראי, זה לוקח בערך דקה…'; render();
+  S.syncMsg = 'מתחבר לבנק ולאשראי…'; render();
   try {
+    if ((st.version || 0) >= 5) {
+      const r = await fetch(BRIDGE + '/api/scrape', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{"async":true}' });
+      const d = await r.json(); if (!r.ok) throw new Error(d.error || 'שגיאה');
+      return pollProgress(st);
+    }
     const r = await fetch(BRIDGE + '/api/scrape', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
     const d = await r.json(); if (!r.ok) throw new Error(d.error || 'שגיאה');
-    const bad = d.results.filter(x => !x.ok), added = d.results.reduce((a, x) => a + (x.added || 0), 0);
-    const noBal = d.results.filter(x => x.ok && !x.card && x.balance == null);
-    const cards = d.results.filter(x => x.ok && x.accounts && x.card).map(x => `${esc(x.label)}: ${x.accounts.map(a => `${esc(a.account.slice(-4))} (${a.count} תנועות)`).join(', ')}`);
-    S.syncMsg = (added ? `נוספו ${added} תנועות חדשות` : 'אין תנועות חדשות') + (cards.length ? `. כרטיסים שהגיעו: ${cards.join('; ')}` : '')
-      + (bad.length ? `. לא הצליח: ${bad.map(x => esc(x.label) + ' (' + esc(x.error) + ')').join(', ')}` : '')
-      + (!st.version || st.version < 3 ? '. הגשר בגרסה ישנה ולכן אין יתרה: הרץ update.bat אחרי שהחלפת את הקבצים' : noBal.length ? `. ${noBal.map(x => esc(x.label)).join(', ')} לא החזיר יתרה` : '');
-  } catch (e) { S.syncMsg = esc(e.message); }
+    await finishSync(d.results, st);
+  } catch (e) { S.syncing = false; S.syncMsg = esc(e.message); render(); }
+}
+// שואל את הגשר כל שנייה וחצי מה המצב, עד שמסיים. ממשיך גם אחרי רענון של הדף
+async function pollProgress(st) {
+  S.syncing = true;
+  for (;;) {
+    let pr = null;
+    try { pr = await (await fetch(BRIDGE + '/api/progress')).json(); } catch {}
+    if (!pr) { S.syncing = false; S.progress = null; S.syncMsg = 'הקשר עם הגשר נותק'; render(); return; }
+    if (!pr.running) { S.progress = null; if (pr.error) { S.syncing = false; S.syncMsg = esc(pr.error); render(); return; } return finishSync(pr.results || [], st); }
+    S.progress = pr; S.syncMsg = '';
+    const bar = $('#syncbar');
+    if (bar && S.view === 'home') bar.outerHTML = progressHTML(); else if (S.view === 'home') render();
+    await new Promise(r => setTimeout(r, 1500));
+  }
+}
+function progressHTML() {
+  const p = S.progress; if (!p) return '';
+  const m = Math.floor(p.seconds / 60), sec = p.seconds % 60;
+  return `<div id="syncbar" style="margin-top:12px">
+    <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:600"><span>מעדכן מהבנק ומהאשראי</span><span class="num">${p.percent}%</span></div>
+    <div style="height:8px;border-radius:4px;background:rgba(255,255,255,.25);margin:6px 0;overflow:hidden"><div style="height:100%;width:${p.percent}%;background:#fff;border-radius:4px;transition:width .6s"></div></div>
+    <div style="font-size:12.5px;opacity:.85">${p.accounts.map(a => `${esc(a.label)}: ${esc(a.stage)} ${a.percent}%`).join(' · ')}<br>עברו ${m ? m + ' דקות ו-' : ''}${sec} שניות</div></div>`;
+}
+async function finishSync(results, st) {
+  const bad = results.filter(x => x && !x.ok), added = results.reduce((a, x) => a + ((x && x.added) || 0), 0);
+  const noBal = results.filter(x => x && x.ok && !x.card && x.balance == null);
+  const cards = results.filter(x => x && x.ok && x.accounts && x.card).map(x => `${esc(x.label)}: ${x.accounts.map(a => `${esc(a.account.slice(-4))} (${a.count} תנועות)`).join(', ')}`);
+  S.syncMsg = (added ? `נוספו ${added} תנועות חדשות` : 'אין תנועות חדשות') + (cards.length ? `. כרטיסים שהגיעו: ${cards.join('; ')}` : '')
+    + (bad.length ? `. לא הצליח: ${bad.map(x => esc(x.label) + ' (' + esc(x.error) + ')').join(', ')}` : '')
+    + (!st || !st.version || st.version < 3 ? '. הגשר בגרסה ישנה: החלף את bridge.js והרץ update.bat' : noBal.length ? `. ${noBal.map(x => esc(x.label)).join(', ')} לא החזיר יתרה` : '');
   S.syncing = false; await reloadAll();
-  setTimeout(() => { S.syncMsg = ''; if (S.view === 'home' && !$('#mbg')) render(); }, 12000);
+  setTimeout(() => { S.syncMsg = ''; if (S.view === 'home' && !$('#mbg')) render(); }, 15000);
+}
+// בטעינת הדף: אם עדכון כבר רץ בגשר, ממשיכים להציג את ההתקדמות
+async function resumeSync() {
+  const st = await bridgeStatus(800);
+  if (st && st.running && (st.version || 0) >= 5) { S.syncing = true; pollProgress(st); }
 }
 
 // ---------- התחייבויות ----------
@@ -623,6 +659,10 @@ function settingsHTML() {
   <div class="panel"><div class="ph"><h2>קטגוריות הכנסות</h2></div>${block('income')}<div style="display:flex;gap:8px;margin-top:10px"><input id="newInc" placeholder="קטגוריה חדשה"><button class="btn sm" onclick="catAdd('income','newInc')">הוספה</button></div></div>
   <div class="panel"><div class="ph"><h2>גיבוי וייבוא</h2></div><button class="btn soft" onclick="exportAll()">הורדת גיבוי</button>
     <label class="f">ייבוא מקובץ</label><input type="file" accept=".json" onchange="importFile(this)"><p class="muted">רישום שכבר מגיע מהבנק או מהאשראי לא ייכנס פעמיים.</p></div>
+  <div class="panel"><div class="ph"><h2>נעילה</h2></div>
+    <label class="f">נעילה אוטומטית אחרי כמה דקות בלי שימוש (0 = בלי נעילה)</label>
+    <input type="number" min="0" value="${lockMinutes()}" onchange="lsSet('kb_lock', String(Math.max(0, parseInt(this.value) || 0)));toast('נשמר')">
+    <p class="muted">בכל פתיחה אחרי זמן כזה, וגם בלחיצה על המנעול למעלה, האתר יבקש שוב את הסיסמה.</p></div>
   <button class="btn red" style="width:100%" onclick="logout()">יציאה</button>
   <p class="muted" style="text-align:center">גרסה ${APP_VERSION}</p>`;
 }
@@ -719,9 +759,18 @@ async function viewReceipt(id) {
 }
 
 // ---------- הפעלה ----------
+// ---------- נעילה ----------
+const lockMinutes = () => { const v = parseInt(lsGet('kb_lock') ?? '30'); return isNaN(v) ? 30 : v; };
+function lockNow() { S.token = null; lsSet('kb_token', null); S.boot = null; closeModal(); render(); }
+function touch() { lsSet('kb_last', String(Date.now())); }
+['click', 'keydown', 'touchstart'].forEach(ev => document.addEventListener(ev, touch, { passive: true }));
+setInterval(() => { const m = lockMinutes(); if (S.token && m > 0 && !S.syncing && Date.now() - (+lsGet('kb_last') || 0) > m * 60000) lockNow(); }, 30000);
+if (S.token && lockMinutes() > 0 && Date.now() - (+lsGet('kb_last') || 0) > lockMinutes() * 60000) { S.token = null; lsSet('kb_token', null); }
+touch();
+
 S.hy = hparts(todayIso()).y;
 render();
-if (S.token) reloadAll().catch(e => toast(e.message));
+if (S.token) reloadAll().then(resumeSync).catch(e => toast(e.message));
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 </script>
 </body>
