@@ -417,7 +417,31 @@ function maaserHTML() {
   <div class="panel"><div class="ph"><h2>שנת ${gem(S.hy)}</h2></div>
     <div class="kv"><span>הכנסות שחייבות במעשר</span><b>${M(s.liable)}</b></div><div class="kv"><span>מעשרות השנה</span><b>${M(s.liable * pct)}</b></div><div class="kv"><span>ניתן השנה</span><b>${M(s.maaser)}</b></div></div>
   <div class="panel"><div class="ph"><h2>למי נתתי</h2></div>${Object.entries(byR).sort((a, b) => b[1] - a[1]).map(([n, v]) => `<div class="kv"><span>${esc(n)}</span><b>${M(v)}</b></div>`).join('') || '<div class="empty">עדיין לא נרשמו מעשרות השנה</div>'}</div>
-  <div class="panel"><div class="ph"><h2>כל התשלומים</h2></div>${statement(pays) || '<div class="empty">אין</div>'}</div>`;
+  <div class="panel"><div class="ph"><h2>כל התשלומים</h2></div>${statement(pays) || '<div class="empty">אין</div>'}</div>
+  ${incomesPanel()}`;
+}
+
+function incomesPanel() {
+  const inc = S.txs.filter(t => t.type === 'income').sort((a, b) => a.date.localeCompare(b.date));
+  if (!inc.length) return '';
+  const pct = (+S.boot.settings.maaser_percent || 10) / 100;
+  const liable = inc.filter(t => t.maaser_liable).reduce((a, t) => a + t.amount, 0), not = inc.filter(t => !t.maaser_liable).reduce((a, t) => a + t.amount, 0);
+  let lastM = '';
+  const rows = inc.map(t => { const m = hMonth(t.date); const head = m !== lastM ? `<div class="day"><span>${m}</span></div>` : ''; lastM = m;
+    return `${head}<div class="kv" style="align-items:center">
+      <label class="check" style="margin:0;flex:1;min-width:0;cursor:pointer"><input type="checkbox" ${t.maaser_liable ? 'checked' : ''} onchange="toggleLiable(${t.id},this.checked)">
+        <span style="min-width:0"><span style="display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(t.description || 'הכנסה')}</span><span class="muted">${hDate(t.date)} (${gDate(t.date)}), ${esc(catById(t.category_id)?.name || '')}${t.source === 'bank' ? '' : ', ידני'}</span></span></label>
+      <b style="cursor:pointer;color:${t.maaser_liable ? 'var(--text)' : 'var(--muted)'}" onclick="openTx(${t.id})">${M(t.amount)}</b></div>`; }).join('');
+  return `<div class="panel"><div class="ph"><h2>הכנסות השנה</h2></div>
+    <p class="muted" style="margin:0 0 6px">מסומן = נכנס לחישוב המעשרות. אם משהו כאן הוא לא הכנסה באמת (הלוואה, החזר, העברה בין חשבונות), הורד את הסימון. לחיצה על הסכום פותחת לעריכה.</p>
+    <div class="kv"><span>חייב במעשר</span><b>${M(liable)} (מעשר ${M0(liable * pct)})</b></div>
+    ${not ? `<div class="kv"><span>לא נספר למעשר</span><b>${M(not)}</b></div>` : ''}
+    ${rows}</div>`;
+}
+async function toggleLiable(id, on) {
+  const t = S.txs.find(x => x.id === id); if (!t) return;
+  try { await api('/api/tx/' + id, { method: 'PUT', body: { type: t.type, date: t.date, amount: t.amount, category_id: t.category_id, description: t.description, payment_method: t.payment_method, note: t.note, maaser_liable: on ? 1 : 0 } });
+    t.maaser_liable = on ? 1 : 0; S.maaser = await api('/api/maaser'); render(); toast(on ? 'נכנס לחישוב המעשרות' : 'הוצא מחישוב המעשרות'); } catch (e) { toast(e.message); }
 }
 
 // ---------- בדיקה ----------
