@@ -51,10 +51,13 @@ button,input,select,textarea{font:inherit;color:inherit}
 .sum4 b{display:block;font-size:17px;color:var(--text);font-weight:700;margin-top:2px}
 .sum4 .p b{color:var(--pos)}.sum4 .m b{color:var(--maa)}
 @media(max-width:380px){.sum4 b{font-size:15px}}
+@media(max-width:480px){nav.bn button{font-size:10px}nav.bn svg{width:20px;height:20px}}
+.flagtag{display:inline-block;font-size:11.5px;font-weight:600;border-radius:999px;padding:1px 8px;margin-inline-start:6px;background:#FFF1D6;color:#8A5300}
+.row.flagged .a{color:var(--muted)}
 .actions-row{display:flex;gap:8px;margin-bottom:12px}
 .act{flex:1;border:0;background:var(--card);border-radius:16px;padding:12px 6px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:14px}
 .act span{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-size:18px}
-.act.cash span{background:#E3F4EA}.act.maa span{background:var(--maa-soft)}.act.oth span{background:var(--brand-soft)}
+.act.cash span{background:#E3F4EA}.act.inc span{background:#DDF2E8;color:var(--pos)}.act.maa span{background:var(--maa-soft)}.act.oth span{background:var(--brand-soft)}
 .cr{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;padding:7px 0;cursor:pointer}
 .cr .ic{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:16px}
 .cr .bk{height:5px;border-radius:3px;background:var(--line);margin-top:5px;overflow:hidden}
@@ -101,7 +104,7 @@ label.f{display:block;font-size:13px;color:var(--muted);margin:13px 0 5px}
 .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}.filters>*{flex:1;min-width:120px}
 nav.bn{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);z-index:10;padding-bottom:env(safe-area-inset-bottom)}
 nav.bn .in{max-width:760px;margin:0 auto;display:flex}
-nav.bn button{flex:1;border:0;background:none;padding:8px 0 9px;color:var(--muted);font-size:11.5px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;position:relative}
+nav.bn button{flex:1;min-width:0;border:0;background:none;padding:8px 0 9px;color:var(--muted);font-size:11.5px;white-space:nowrap;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;position:relative}
 nav.bn svg{width:22px;height:22px}
 nav.bn button.on{color:var(--brand);font-weight:700}
 .badge{position:absolute;top:3px;left:calc(50% - 22px);background:var(--red);color:#fff;border-radius:999px;font-size:10px;padding:0 5px;font-weight:700}
@@ -214,6 +217,7 @@ async function loadYear() {
   const [a, b] = yearRange(S.hy);
   const [t, m, bk] = await Promise.all([api(`/api/tx?from=${a}&to=${b}`), api('/api/maaser'), api(`/api/bank?from=${a}&to=${b}`)]);
   S.txs = t.items; S.maaser = m; S.bank = bk.items;
+  try { S.flagged = (await api('/api/tx?flagged=1')).items; } catch { S.flagged = S.txs.filter(x => x.flag); }
   BANK_BY_ID = {}; S.bank.forEach(b => BANK_BY_ID[b.id] = b);
 }
 let BANK_BY_ID = {};
@@ -237,7 +241,7 @@ function suggest(text, type) {
 }
 
 // ---------- חישובים ----------
-function sums(list) { const r = { income: 0, expense: 0, maaser: 0, liable: 0 }; list.forEach(t => { r[t.type] += t.amount; if (t.type === 'income' && t.maaser_liable) r.liable += t.amount; }); return r; }
+function sums(list) { const r = { income: 0, expense: 0, maaser: 0, liable: 0 }; list.forEach(t => { if (t.flag) return; r[t.type] += t.amount; if (t.type === 'income' && t.maaser_liable) r.liable += t.amount; }); return r; }
 const inMonth = (list, m) => list.filter(t => hMonth(t.date) === m);
 function bankBalance() {
   const all = (S.boot.accounts || []).filter(a => !CARD_SOURCES.includes(a.source));
@@ -256,11 +260,13 @@ function render() {
   if (!S.boot) { root.innerHTML = '<div class="login"><h1>כספי הבית</h1><p class="muted">טוען…</p></div>'; return; }
   const ms = yearMonths(S.hy);
   if (!S.month || !ms.includes(S.month)) { const cur = hMonth(todayIso()); S.month = ms.includes(cur) && hparts(todayIso()).y === S.hy ? cur : ms[0]; }
-  const views = { home: homeHTML, reports: reportsHTML, list: listHTML, maaser: maaserHTML, check: checkHTML, obl: oblHTML, settings: settingsHTML };
+  const views = { home: homeHTML, month: monthViewHTML, income: incomeViewHTML, reports: reportsHTML, list: listHTML, maaser: maaserHTML, check: checkHTML, obl: oblHTML, settings: settingsHTML };
   const v = views[S.view] ? S.view : 'home';
   root.innerHTML = `<div class="wrap">${heroHTML(v === 'home')}${views[v]()}</div>
   <nav class="bn"><div class="in">
     ${nb('home', 'חשבון', '<path d="M3 10.5L12 4l9 6.5V20a1 1 0 01-1 1h-5v-6h-6v6H4a1 1 0 01-1-1z"/>')}
+    ${nb('month', 'נתוני החודש', '<rect x="3.5" y="4" width="17" height="16.5" rx="2"/><path d="M8 15v-3M12 15V9M16 15v-5"/>')}
+    ${nb('income', 'הכנסות', '<path d="M12 20V6M6.5 11.5L12 6l5.5 5.5"/><path d="M4 20h16"/>')}
     ${nb('reports', 'דוחות', '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>')}
     ${nb('maaser', 'מעשרות', '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v9M9 10h6"/>')}
     ${nb('check', 'בדיקה', '<path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/>', checkIssues())}
@@ -298,18 +304,28 @@ function homeHTML() {
   <div class="actions-row">
     <button class="act cash" onclick="openTx({type:'expense',payment_method:'מזומן'})"><span>💵</span>הוצאה במזומן</button>
     <button class="act maa" onclick="openTx({type:'maaser'})"><span>🪙</span>מעשרות</button>
-    <button class="act oth" onclick="openTx({type:'expense'})"><span>＋</span>רישום אחר</button>
+    <button class="act inc" onclick="openTx({type:'income'})"><span>⬆</span>הכנסה</button>
+    <button class="act oth" onclick="openTx({type:'expense'})"><span>＋</span>הוצאה אחרת</button>
   </div>
   <div class="panel"><div class="ph"><h2>תנועות ב${esc(S.month)}</h2><button class="l" onclick="S.filter={type:'',cat:'',month:'${S.month}',q:''};go('list')">חיפוש</button></div>
     ${statement(list.filter(t => !pendingInfo(t))) || `<div class="empty">אין תנועות בחודש הזה. לחץ על העדכון למעלה כדי למשוך מהבנק ומהאשראי.</div>`}</div>
-  ${safe(() => pendingHTML(list))}
-  ${safe(() => monthIncomeHTML(list))}
-  ${safe(() => monthDataHTML(list, crs))}`;
+  ${safe(() => pendingHTML(list))}`;
 }
-const APP_VERSION = '17.10.26-ד';
+function monthViewHTML() {
+  const list = inMonth(S.txs, S.month);
+  const byCat = {}; list.filter(t => t.type === 'expense' && !t.flag).forEach(t => byCat[t.category_id] = (byCat[t.category_id] || 0) + t.amount);
+  const crs = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
+  return `${yearLine()}${monthsStrip()}${safe(() => monthDataHTML(list, crs)) || '<div class="panel"><div class="empty">אין נתונים בחודש הזה</div></div>'}`;
+}
+function incomeViewHTML() {
+  return `${yearLine()}${monthsStrip()}
+  <button class="btn" style="width:100%;margin-bottom:12px;background:var(--pos)" onclick="openTx({type:'income'})">+ רישום הכנסה</button>
+  ${safe(() => monthIncomeHTML(inMonth(S.txs, S.month)))}${safe(() => incomesPanel())}`;
+}
+const APP_VERSION = '17.10.26-ה';
 function safe(fn) { try { return fn(); } catch (e) { console.error(e); return `<div class="panel"><div class="muted">שגיאה בהצגת החלק הזה: ${esc(e.message)}</div></div>`; } }
 function monthIncomeHTML(list) {
-  const inc = list.filter(t => t.type === 'income').sort((a, b) => a.date.localeCompare(b.date));
+  const inc = list.filter(t => t.type === 'income' && !t.flag).sort((a, b) => a.date.localeCompare(b.date));
   const pct = (+S.boot.settings.maaser_percent || 10) / 100;
   const liable = inc.filter(t => t.maaser_liable).reduce((a, t) => a + t.amount, 0), total = inc.reduce((a, t) => a + t.amount, 0);
   return `<div class="panel"><div class="ph"><h2>הכנסות ב${esc(S.month)}</h2><b>${M(total)}</b></div>
@@ -338,7 +354,7 @@ function monthDataHTML(list, crs) {
   const s = sums(list);
   if (!list.length) return '';
   const byG = {}, byP = {};
-  list.filter(t => t.type === 'expense').forEach(t => { const g = catById(t.category_id)?.grp || 'שוטפות'; byG[g] = (byG[g] || 0) + t.amount; const pm = t.payment_method || 'אחר'; byP[pm] = (byP[pm] || 0) + t.amount; });
+  list.filter(t => t.type === 'expense' && !t.flag).forEach(t => { const g = catById(t.category_id)?.grp || 'שוטפות'; byG[g] = (byG[g] || 0) + t.amount; const pm = t.payment_method || 'אחר'; byP[pm] = (byP[pm] || 0) + t.amount; });
   const ms = yearMonths(S.hy), i = ms.indexOf(S.month);
   const prev = i > 0 ? sums(inMonth(S.txs, ms[i - 1])) : null;
   const days = new Set(list.map(t => t.date)).size || 1;
@@ -373,8 +389,9 @@ function rowHTML(t) {
   const icon = t.type === 'maaser' ? '🪙' : (c?.icon || (t.type === 'income' ? '+' : '•'));
   const bg = t.type === 'maaser' ? 'var(--maa-soft)' : (c?.color || '#94A3B8') + '1F';
   const sub = [t.type === 'maaser' ? 'מעשרות' : c?.name, t.payment_method].filter(Boolean).map(esc).join(' | ');
-  return `<div class="row ${t.type}" onclick="openTx(${t.id})"><div class="ic" style="background:${bg}">${icon}</div>
-    <div style="min-width:0"><div class="n">${esc(t.description || TYPE_LABEL[t.type])}${t.has_receipt ? ' 📎' : ''}</div><div class="s">${sub}</div></div>
+  const ft = t.flag ? `<span class="flagtag">${t.flag === 'lent' ? 'חוב' : 'פיקדון'}${t.party ? ': ' + esc(t.party) : ''}</span>` : '';
+  return `<div class="row ${t.type}${t.flag ? ' flagged' : ''}" onclick="openTx(${t.id})"><div class="ic" style="background:${bg}">${icon}</div>
+    <div style="min-width:0"><div class="n">${esc(t.description || TYPE_LABEL[t.type])}${t.has_receipt ? ' 📎' : ''}${ft}</div><div class="s">${t.note ? '📝 ' + esc(t.note) + ' | ' : ''}${sub}</div></div>
     <div class="a num">${t.type === 'income' ? '+' : '−'}₪${fmt(t.amount)}${t.source === 'bank' ? '' : '<small>ידני</small>'}</div></div>`;
 }
 
@@ -383,9 +400,9 @@ function reportsHTML() {
   const ms = yearMonths(S.hy).map(m => ({ m, s: sums(inMonth(S.txs, m)) })).filter(x => x.s.income || x.s.expense || x.s.maaser);
   const max = Math.max(1, ...ms.flatMap(x => [x.s.income, x.s.expense]));
   const ys = sums(S.txs);
-  const byCat = {}; S.txs.filter(t => t.type === 'expense').forEach(t => byCat[t.category_id] = (byCat[t.category_id] || 0) + t.amount);
+  const byCat = {}; S.txs.filter(t => t.type === 'expense' && !t.flag).forEach(t => byCat[t.category_id] = (byCat[t.category_id] || 0) + t.amount);
   const crs = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
-  const byG = {}; S.txs.filter(t => t.type === 'expense').forEach(t => { const g = catById(t.category_id)?.grp || 'שוטפות'; byG[g] = (byG[g] || 0) + t.amount; });
+  const byG = {}; S.txs.filter(t => t.type === 'expense' && !t.flag).forEach(t => { const g = catById(t.category_id)?.grp || 'שוטפות'; byG[g] = (byG[g] || 0) + t.amount; });
   return `${yearLine()}
   <div class="panel"><div class="ph"><h2>שנת ${gem(S.hy)} עד היום</h2></div><div class="sum4">
     <div class="p">נכנס<b>${M0(ys.income)}</b></div><div>יצא<b>${M0(ys.expense)}</b></div><div class="m">מעשרות<b>${M0(ys.maaser)}</b></div><div>נשאר<b>${M0(ys.income - ys.expense - ys.maaser)}</b></div></div>
@@ -400,7 +417,7 @@ function reportsHTML() {
 }
 function listHTML() {
   const f = S.filter;
-  const items = S.txs.filter(t => (!f.type || t.type === f.type) && (!f.cat || String(t.category_id) === f.cat) && (!f.month || hMonth(t.date) === f.month) && (!f.q || (t.description + ' ' + t.note).includes(f.q)));
+  const items = S.txs.filter(t => (!f.type || t.type === f.type) && (!f.cat || String(t.category_id) === f.cat) && (!f.month || hMonth(t.date) === f.month) && (!f.q || (t.description + ' ' + t.note + ' ' + (t.party || '')).includes(f.q)));
   const s = sums(items);
   const cl = (f.type ? cats(f.type) : S.boot.categories).filter(c => c.active);
   return `<div class="panel"><div class="ph"><h2>חיפוש תנועות</h2><button class="l" onclick="go('reports')">חזרה</button></div>
@@ -417,7 +434,7 @@ function listHTML() {
 // ---------- מעשרות ----------
 function maaserHTML() {
   const m = S.maaser || {}, s = sums(S.txs), pct = (+S.boot.settings.maaser_percent || 10) / 100;
-  const pays = S.txs.filter(t => t.type === 'maaser');
+  const pays = S.txs.filter(t => t.type === 'maaser' && !t.flag);
   const byR = {}; pays.forEach(p => byR[p.description || 'ללא שם'] = (byR[p.description || 'ללא שם'] || 0) + p.amount);
   return `${yearLine()}
   <div class="panel"><div class="ph"><h2>נשאר לתת</h2></div><div class="bigmaa num">₪${fmt(m.balance)}</div>
@@ -430,11 +447,11 @@ function maaserHTML() {
     <div class="kv"><span>הכנסות שחייבות במעשר</span><b>${M(s.liable)}</b></div><div class="kv"><span>מעשרות השנה</span><b>${M(s.liable * pct)}</b></div><div class="kv"><span>ניתן השנה</span><b>${M(s.maaser)}</b></div></div>
   <div class="panel"><div class="ph"><h2>למי נתתי</h2></div>${Object.entries(byR).sort((a, b) => b[1] - a[1]).map(([n, v]) => `<div class="kv"><span>${esc(n)}</span><b>${M(v)}</b></div>`).join('') || '<div class="empty">עדיין לא נרשמו מעשרות השנה</div>'}</div>
   <div class="panel"><div class="ph"><h2>כל התשלומים</h2></div>${statement(pays) || '<div class="empty">אין</div>'}</div>
-  ${incomesPanel()}`;
+  <p class="muted" style="text-align:center">את רשימת ההכנסות, וסימון מה חייב במעשר, תמצא בלשונית "הכנסות".</p>`;
 }
 
 function incomesPanel() {
-  const inc = S.txs.filter(t => t.type === 'income').sort((a, b) => a.date.localeCompare(b.date));
+  const inc = S.txs.filter(t => t.type === 'income' && !t.flag).sort((a, b) => a.date.localeCompare(b.date));
   if (!inc.length) return '';
   const pct = (+S.boot.settings.maaser_percent || 10) / 100;
   const liable = inc.filter(t => t.maaser_liable).reduce((a, t) => a + t.amount, 0), not = inc.filter(t => !t.maaser_liable).reduce((a, t) => a + t.amount, 0);
@@ -512,7 +529,8 @@ async function bridgeUpdate() {
     const d = await r.json(); if (!r.ok) throw new Error(d.error || 'שגיאה');
     const bad = d.results.filter(x => !x.ok), added = d.results.reduce((a, x) => a + (x.added || 0), 0);
     const noBal = d.results.filter(x => x.ok && !x.card && x.balance == null);
-    S.syncMsg = (added ? `נוספו ${added} תנועות חדשות` : 'אין תנועות חדשות')
+    const cards = d.results.filter(x => x.ok && x.accounts && x.card).map(x => `${esc(x.label)}: ${x.accounts.map(a => `${esc(a.account.slice(-4))} (${a.count} תנועות)`).join(', ')}`);
+    S.syncMsg = (added ? `נוספו ${added} תנועות חדשות` : 'אין תנועות חדשות') + (cards.length ? `. כרטיסים שהגיעו: ${cards.join('; ')}` : '')
       + (bad.length ? `. לא הצליח: ${bad.map(x => esc(x.label) + ' (' + esc(x.error) + ')').join(', ')}` : '')
       + (!st.version || st.version < 3 ? '. הגשר בגרסה ישנה ולכן אין יתרה: הרץ update.bat אחרי שהחלפת את הקבצים' : noBal.length ? `. ${noBal.map(x => esc(x.label)).join(', ')} לא החזיר יתרה` : '');
   } catch (e) { S.syncMsg = esc(e.message); }
@@ -545,7 +563,23 @@ function oblHTML() {
       <div style="text-align:left"><div class="a num">₪${fmt(r.amount)}</div><div class="s">${r.balance == null && r.name.includes('משכנתא') ? '' : `יתרה ₪${fmt0(bal)}`}</div></div></div>`).join('') || '<div class="empty">אין חובות</div>'}</div>
   <div class="panel"><div class="ph"><h2>הוצאות קבועות</h2></div>${fixed.map(r => { const c = catById(r.category_id); return `<div class="ob" onclick="openRec(${r.id})">
       <div><div class="n">${c?.icon || ''} ${esc(r.name)}</div><div class="s">${[c?.name, `ב-${r.day} לחודש`, r.note].filter(Boolean).map(esc).join(', ')}</div></div><div class="a num">₪${fmt(r.amount)}</div></div>`; }).join('') || '<div class="empty">אין</div>'}</div>
+  ${safe(() => openDebtsHTML())}
   <p class="muted">הרשימה הזו לתכנון. החיובים עצמם נרשמים לבד מהבנק ומהאשראי.</p>`;
+}
+// חובות ופיקדונות פתוחים: לפי השם, מכל השנים
+function openDebtsHTML() {
+  const g = {};
+  (S.flagged || []).forEach(t => { const k = t.flag + '|' + (t.party || 'ללא שם'); (g[k] = g[k] || { flag: t.flag, party: t.party || 'ללא שם', items: [], bal: 0 }).items.push(t);
+    const out = t.type !== 'income' ? t.amount : -t.amount; g[k].bal += t.flag === 'lent' ? out : -out; });
+  const list = Object.values(g).sort((a, b) => Math.abs(b.bal) - Math.abs(a.bal));
+  const open = list.filter(x => Math.abs(x.bal) >= 1), closed = list.filter(x => Math.abs(x.bal) < 1);
+  const row = x => `<div class="ob" onclick="S.filter={type:'',cat:'',month:'',q:'${esc(x.party).replace(/'/g, '')}'};go('list')"><div><div class="n">${esc(x.party)}</div>
+      <div class="s">${x.items.length} תנועות. ${x.items.map(t => esc(t.note || t.description)).slice(0, 2).join(', ')}</div></div>
+      <div style="text-align:left"><div class="a num">${Math.abs(x.bal) < 1 ? '✓ נסגר' : '₪' + fmt(Math.abs(x.bal))}</div><div class="s">${Math.abs(x.bal) < 1 ? '' : x.flag === 'lent' ? (x.bal > 0 ? 'חייב לך' : 'אתה חייב לו') : (x.bal > 0 ? 'אתה מחזיק עבורו' : 'העברת לו יותר')}</div></div></div>`;
+  return `<div class="panel"><div class="ph"><h2>חובות ופיקדונות פתוחים</h2></div>
+    <p class="muted" style="margin:0 0 4px">תנועות שסימנת "מישהו חייב לי" או "כסף שאני מחזיק עבור מישהו". הן לא נספרות בהוצאות, בהכנסות ובמעשרות.</p>
+    ${open.map(row).join('') || '<div class="empty">אין חובות פתוחים</div>'}
+    ${closed.length ? `<details style="margin-top:8px"><summary class="muted" style="cursor:pointer">נסגרו (${closed.length})</summary>${closed.map(row).join('')}</details>` : ''}</div>`;
 }
 let R = null;
 function openRec(arg) {
@@ -635,12 +669,17 @@ function drawForm() {
       <div class="heb" id="fHeb">${esc(hDate(F.date))} ${gem(hparts(F.date).y)}</div>
       <label class="f">אמצעי תשלום</label><div class="chips">${PAY_METHODS.map(p => `<button class="chip ${F.payment_method === p ? 'on' : ''}" onclick="setPay(this,'${p.replace(/'/g, "\\'")}')">${esc(p)}</button>`).join('')}</div>
       ${F.type === 'income' ? `<label class="check"><input type="checkbox" id="fLiable" ${F.maaser_liable ? 'checked' : ''} onchange="F.maaser_liable=this.checked?1:0"> חייב במעשר</label>` : ''}
-      <label class="f">הערה</label><textarea rows="2" oninput="F.note=this.value">${esc(F.note)}</textarea>
+      <label class="f">שיוך</label><div class="chips" id="flagChips">${[['', 'רגיל'], ['lent', 'מישהו חייב לי'], ['held', 'כסף שאני מחזיק עבור מישהו']].map(([v, l]) => `<button class="chip ${(F.flag || '') === v ? 'on' : ''}" onclick="setFlag('${v}')">${l}</button>`).join('')}</div>
+      <div id="flagBox" class="${F.flag ? '' : 'hidden'}"><label class="f">${F.flag === 'held' ? 'עבור מי' : 'מי'}</label><input id="fParty" list="partyList" value="${esc(F.party || '')}" oninput="F.party=this.value" placeholder="למשל אנגלרד, שמעון">
+        <datalist id="partyList">${[...new Set((S.flagged || []).map(x => x.party).filter(Boolean))].map(p => `<option value="${esc(p)}">`).join('')}</datalist>
+        <div class="muted" style="margin-top:6px">${F.flag === 'lent' ? 'לא נספר בהוצאות ובהכנסות. כשהוא מחזיר, סמן גם את ההחזר "מישהו חייב לי" עם אותו שם, והחוב ייסגר.' : 'לא נספר בהכנסות ובמעשרות. כשתעביר לו את הכסף, סמן גם את ההעברה בשיוך הזה עם אותו שם.'}</div></div>
+      <label class="f">הערה</label><textarea rows="2" oninput="F.note=this.value" placeholder="למשל: עבור קו השיעורים">${esc(F.note)}</textarea>
       <label class="f">קבלה</label><div class="rbox" id="rbox">${receiptBox()}</div>
       <div class="mfoot"><button class="btn ${F.type === 'maaser' ? 'maa' : ''}" id="fSave" onclick="saveTx()">שמירה</button>${F.id ? `<button class="btn red" onclick="delTx()">${fromBank ? 'לא לספור' : 'מחיקה'}</button>` : ''}</div>
     </div>`);
   if (!F.id && !F.amount) setTimeout(() => $('#fAmount')?.focus(), 60);
 }
+function setFlag(v) { keep(); F.flag = v; if (v && !F.party) F.party = ''; drawForm(); }
 function keep() { F.amount = $('#fAmount')?.value ?? F.amount; F.description = $('#fDesc')?.value ?? F.description; }
 function setType(t) { keep(); if (t === F.type) return; F.type = t; F.category_id = t === 'maaser' ? null : suggest(F.description, t); if (!F.id) F.catTouched = false; drawForm(); }
 function pickCat(id) { F.category_id = id; F.catTouched = true; if (F.type === 'income' && !F.id) { F.maaser_liable = catById(id)?.maaser_liable ?? 1; const l = $('#fLiable'); if (l) l.checked = !!F.maaser_liable; } redrawCats(); }
@@ -661,7 +700,7 @@ async function saveTx() {
   if (!(+F.amount > 0)) return toast('חסר סכום');
   if (F.type !== 'maaser' && !F.category_id) return toast('בחר קטגוריה');
   const btn = $('#fSave'); btn.disabled = true; btn.textContent = 'שומר…';
-  const body = { type: F.type, date: F.date, amount: +F.amount, category_id: F.type === 'maaser' ? null : F.category_id, description: F.description, payment_method: F.payment_method, note: F.note, maaser_liable: F.maaser_liable };
+  const body = { type: F.type, date: F.date, amount: +F.amount, category_id: F.type === 'maaser' ? null : F.category_id, description: F.description, payment_method: F.payment_method, note: F.note, maaser_liable: F.maaser_liable, flag: F.flag || '', party: F.flag ? (($('#fParty')?.value) ?? F.party ?? '') : '' };
   try {
     let id = F.id, msg = 'נשמר';
     if (id) { const r = await api('/api/tx/' + id, { method: 'PUT', body }); if (r.similar) msg = `נשמר, ועודכנו עוד ${r.similar} תנועות דומות`; }
