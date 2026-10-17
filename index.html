@@ -306,7 +306,7 @@ function homeHTML() {
   ${safe(() => monthIncomeHTML(list))}
   ${safe(() => monthDataHTML(list, crs))}`;
 }
-const APP_VERSION = '17.10.26-ג';
+const APP_VERSION = '17.10.26-ד';
 function safe(fn) { try { return fn(); } catch (e) { console.error(e); return `<div class="panel"><div class="muted">שגיאה בהצגת החלק הזה: ${esc(e.message)}</div></div>`; } }
 function monthIncomeHTML(list) {
   const inc = list.filter(t => t.type === 'income').sort((a, b) => a.date.localeCompare(b.date));
@@ -474,7 +474,7 @@ function checkHTML() {
   const ckRow = (b, tag, btns) => `<div class="ck"><div class="top"><span>${esc(b.description)}</span><span class="num">${b.amount < 0 ? '−' : '+'}₪${fmt(Math.abs(b.amount))}</span></div>
     <div class="meta">${hDate(b.date)} (${gDate(b.date)}), ${SRC_NAME[b.source] || esc(b.source)}${b.memo ? ', ' + esc(b.memo) : ''}</div><div class="btns">${tag}${btns}</div></div>`;
   return `<div class="panel"><div class="ph"><h2>איך התוכנה מקזזת</h2></div>
-    <p class="muted" style="margin:0">כל תנועה מהבנק ומהאשראי נרשמת לבד ומקבלת קטגוריה. כדי שכלום לא ייספר פעמיים: החיוב החודשי של כרטיס אשראי בעו"ש לא נספר, כי העסקאות עצמן מגיעות מחברת האשראי. משיכת מזומן לא נספרת, כי את ההוצאות במזומן אתה רושם. אם רשמת ידנית משהו שמגיע גם מהבנק או מהאשראי, נשארים נתוני הבנק עם הקטגוריה שבחרת. מעשרות שרשמת נשארים מעשרות.</p></div>
+    <p class="muted" style="margin:0">כל תנועה מהבנק ומהאשראי נרשמת לבד ומקבלת קטגוריה. כדי שכלום לא ייספר פעמיים: החיוב החודשי של כרטיס אשראי בעו"ש לא נספר, כי העסקאות עצמן מגיעות מחברת האשראי. משיכת מזומן לא נספרת, כי את ההוצאות במזומן אתה רושם. אם רשמת ידנית משהו שמגיע גם מהבנק או מהאשראי, נשארים נתוני הבנק עם הקטגוריה שבחרת. מעשרות נספרים רק כשאתה רושם אותם (או העברה לנמען מהרשימה בהגדרות, כמו הורים). תרומה בכרטיס שלא רשמת כמעשרות נכנסת להוצאות, בקטגוריה "תרומות וצדקה".</p></div>
   <div class="panel"><div class="ph"><h2>חיובי כרטיסי אשראי</h2></div>
     ${bills.map(b => { const m = cardMatch(b); const ok = m && m.d <= 1;
       return ckRow(b, ok ? `<span class="tag ok">✓ תואם לעסקאות ב${SRC_NAME[m.k.split('|')[0]] || ''} ${esc(m.k.split('|')[1].slice(-4))}</span>`
@@ -581,6 +581,8 @@ function settingsHTML() {
     <label class="f">אחוז</label><input id="sPct" type="number" step="0.5" value="${esc(st.maaser_percent)}">
     <label class="f">חוב מעשרות מלפני תאריך הפתיחה (מינוס אם נתת יותר)</label><input id="sOpen" type="number" step="0.01" value="${esc(st.maaser_opening)}">
     <label class="f">תאריך פתיחה למעשרות</label><input id="sDate" type="date" value="${esc(st.maaser_opening_date)}">
+    <label class="f">נמענים שהעברה אליהם נרשמת תמיד כמעשרות (מופרדים בפסיק)</label><input id="sNames" value="${esc(st.maaser_names ?? 'הורים')}" placeholder="הורים">
+    <p class="muted" style="margin:4px 0 0">כל שאר התרומות מהבנק ומהאשראי נרשמות כהוצאה "תרומות וצדקה" ולא יורדות מהמעשרות. מעשרות רושמים ידנית. אם תשנה תרומה מסוימת למעשרות, התוכנה תזכור את הנמען להבא.</p>
     <label class="f">תנועות מהבנק ומהאשראי נכנסות מהתאריך</label><input id="sBank" type="date" value="${esc(st.bank_start || '2026-09-12')}">
     <button class="btn" style="margin-top:12px" onclick="saveSettings()">שמירה</button></div>
   <div class="panel"><div class="ph"><h2>קטגוריות הוצאות</h2></div>${block('expense')}<div style="display:flex;gap:8px;margin-top:10px"><input id="newExp" placeholder="קטגוריה חדשה"><button class="btn sm" onclick="catAdd('expense','newExp')">הוספה</button></div></div>
@@ -593,7 +595,7 @@ function settingsHTML() {
 async function catAdd(type, inp) { const n = $('#' + inp).value.trim(); if (!n) return; try { await api('/api/categories', { method: 'POST', body: { type, name: n } }); await loadBoot(); render(); } catch (e) { toast(e.message); } }
 async function catUpd(id, b) { try { await api('/api/categories/' + id, { method: 'PUT', body: b }); await loadBoot(); toast('נשמר'); } catch (e) { toast(e.message); } }
 async function catDel(id) { if (!confirm('למחוק את הקטגוריה?')) return; try { await api('/api/categories/' + id, { method: 'DELETE' }); await loadBoot(); render(); } catch (e) { toast(e.message); } }
-async function saveSettings() { try { await api('/api/settings', { method: 'PUT', body: { maaser_percent: $('#sPct').value, maaser_opening: $('#sOpen').value, maaser_opening_date: $('#sDate').value, bank_start: $('#sBank').value } }); await reloadAll(); toast('נשמר'); } catch (e) { toast(e.message); } }
+async function saveSettings() { try { await api('/api/settings', { method: 'PUT', body: { maaser_percent: $('#sPct').value, maaser_opening: $('#sOpen').value, maaser_opening_date: $('#sDate').value, bank_start: $('#sBank').value, maaser_names: $('#sNames').value } }); await reloadAll(); toast('נשמר'); } catch (e) { toast(e.message); } }
 async function exportAll() { try { const d = await api('/api/export'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(d, null, 1)], { type: 'application/json' })); a.download = 'kaspei-bayit-' + todayIso() + '.json'; a.click(); } catch (e) { toast(e.message); } }
 async function importFile(inp) { const f = inp.files[0]; if (!f) return; if (!confirm('לייבא את ' + f.name + '?')) return; try { const r = await api('/api/import', { method: 'POST', body: JSON.parse(await f.text()) }); toast(`יובאו ${r.transactions} רישומים${r.merged ? `, ${r.merged} מהם כבר הגיעו מהבנק וקושרו` : ''}`); await reloadAll(); } catch (e) { toast('שגיאה: ' + e.message); } inp.value = ''; }
 function logout() { S.token = null; lsSet('kb_token', null); S.boot = null; render(); }
