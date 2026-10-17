@@ -4,190 +4,139 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>כספי הבית</title>
-<meta name="theme-color" content="#1B2463">
+<meta name="theme-color" content="#0A5C45">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --ink:#1B2463; --ink-deep:#10164A; --ink-soft:#2C3A8C;
-  --sheet:#F4F5FA; --paper:#FFFFFF; --text:#151A3D; --muted:#5F6587; --line:#E2E4F0;
-  --exp:#E5482F; --inc:#0FA36B; --maa:#F5A400; --maa-ink:#8A5B00;
-  --g-fixed:#3554D1; --g-run:#E5482F; --g-once:#8E2C8A;
-  --serif:'Frank Ruhl Libre',Georgia,serif; --sans:Rubik,system-ui,sans-serif;
+  --brand:#0A5C45; --brand2:#11806A; --brand-soft:#E2F0EB;
+  --bg:#EDF1EF; --card:#FFFFFF; --text:#13201B; --muted:#66736D; --line:#E4E9E6;
+  --neg:#13201B; --pos:#0E8A5F; --red:#C4372A; --maa:#A86A00; --maa-soft:#FBF0D9;
 }
 *{box-sizing:border-box}
-html,body{margin:0}
-body{font-family:var(--sans);color:var(--text);font-size:16px;line-height:1.45;
-  background:var(--ink-deep);
-  background-image:
-    radial-gradient(1200px 500px at 85% -10%, #3B4BC4 0%, transparent 60%),
-    radial-gradient(900px 600px at -10% 10%, #0E6B6B 0%, transparent 55%),
-    linear-gradient(180deg,var(--ink) 0%,var(--ink-deep) 70%);
-  background-attachment:fixed;min-height:100vh}
+html,body{margin:0;background:var(--bg)}
+body{font-family:Assistant,system-ui,sans-serif;color:var(--text);font-size:16px;line-height:1.4}
 button,input,select,textarea{font:inherit;color:inherit}
-:focus-visible{outline:3px solid var(--maa);outline-offset:2px}
+:focus-visible{outline:3px solid #F2B705;outline-offset:2px}
 .num{font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
-
-/* ---------- hero (על הרקע הצבעוני) ---------- */
-.hero{color:#fff;max-width:980px;margin:0 auto;padding:16px 18px 0}
-.bar{display:flex;align-items:center;gap:10px}
-.brand{font-family:var(--serif);font-weight:700;font-size:21px;flex:1;letter-spacing:.2px}
-.ibtn{width:42px;height:42px;border-radius:50%;border:1.5px solid rgba(255,255,255,.28);background:rgba(255,255,255,.06);color:#fff;display:grid;place-items:center;cursor:pointer}
-.ibtn svg{width:20px;height:20px}
-.ibtn.spin svg{animation:sp 1s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
-.yearrow{display:flex;align-items:center;gap:14px;margin:18px 0 6px}
-.yearrow button{background:none;border:0;color:rgba(255,255,255,.6);font-size:34px;cursor:pointer;line-height:1;padding:0 4px}
-.yearrow button:hover{color:#fff}
-.year{font-family:var(--serif);font-weight:900;font-size:clamp(64px,17vw,112px);line-height:.9;letter-spacing:-1px;
-  color:transparent;-webkit-text-stroke:1.6px rgba(255,255,255,.9)}
-.flows{display:flex;gap:0;margin:16px 0 26px;flex-wrap:wrap}
-.flow{padding:0 16px;border-inline-start:1px solid rgba(255,255,255,.22)}
-.flow:first-child{padding-inline-start:0;border:0}
-.flow .k{font-size:13px;color:rgba(255,255,255,.7)}
-.flow .v{font-family:var(--serif);font-weight:700;font-size:clamp(22px,5.6vw,30px);line-height:1.15}
-.flow.in .v{color:#5BE3A8}.flow.out .v{color:#FF8A73}.flow.ma .v{color:var(--maa)}
-
-/* ---------- the sheet ---------- */
-.sheet{background:var(--sheet);border-radius:30px 30px 0 0;min-height:60vh;max-width:980px;margin:0 auto;padding:22px 18px 130px;box-shadow:0 -10px 40px rgba(0,0,0,.25)}
-.sheet.plain{margin-top:14px}
-h2.sec{font-family:var(--serif);font-weight:700;font-size:22px;margin:30px 0 12px;display:flex;align-items:baseline;gap:10px}
-h2.sec:first-child{margin-top:4px}
-h2.sec small{font-family:var(--sans);font-size:13px;color:var(--muted);font-weight:400}
+.wrap{max-width:760px;margin:0 auto;padding:0 16px 120px}
+.hero{background:linear-gradient(140deg,var(--brand) 0%,var(--brand2) 100%);color:#fff;border-radius:0 0 28px 28px;padding:14px 20px 22px;margin:0 -16px 16px}
+@media(min-width:792px){.hero{margin:0 0 16px}}
+.htop{display:flex;align-items:center;gap:8px}
+.htop .t{flex:1;font-weight:700;font-size:17px;opacity:.95}
+.ib{width:38px;height:38px;border-radius:50%;border:0;background:rgba(255,255,255,.14);color:#fff;display:grid;place-items:center;cursor:pointer}
+.ib svg{width:19px;height:19px}.ib.spin svg{animation:sp 1s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
+.bal-l{margin-top:16px;font-size:14px;opacity:.85}
+.bal{font-size:42px;font-weight:800;line-height:1.1;letter-spacing:-.5px}
+.bal-sub{display:flex;gap:18px;flex-wrap:wrap;margin-top:10px;font-size:14px}
+.bal-sub div{opacity:.9}.bal-sub b{display:block;font-size:17px;font-weight:700}
+.upd{font-size:12.5px;opacity:.75;margin-top:10px}
+.months{display:flex;gap:6px;overflow-x:auto;padding:2px 16px 10px;scrollbar-width:none;margin:0 -16px}
+.months::-webkit-scrollbar{display:none}
+.mt{flex:none;border:0;background:var(--card);border-radius:999px;padding:8px 15px;font-weight:600;cursor:pointer;color:var(--muted)}
+.mt.on{background:var(--brand);color:#fff}
+.yearline{display:flex;align-items:center;justify-content:space-between;margin:4px 0 8px}
+.yearline b{font-size:18px}
+.yearline button{border:0;background:none;color:var(--brand);font-weight:600;cursor:pointer;padding:6px}
+.panel{background:var(--card);border-radius:20px;padding:14px 16px;margin-bottom:12px}
+.ph{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.ph h2{margin:0;font-size:17px;font-weight:700}
+.ph button.l{font-size:14px;color:var(--brand);font-weight:600;background:none;border:0;cursor:pointer}
+.sum4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center}
+.sum4 div{font-size:12.5px;color:var(--muted)}
+.sum4 b{display:block;font-size:17px;color:var(--text);font-weight:700;margin-top:2px}
+.sum4 .p b{color:var(--pos)}.sum4 .m b{color:var(--maa)}
+@media(max-width:380px){.sum4 b{font-size:15px}}
+.actions-row{display:flex;gap:8px;margin-bottom:12px}
+.act{flex:1;border:0;background:var(--card);border-radius:16px;padding:12px 6px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:14px}
+.act span{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-size:18px}
+.act.cash span{background:#E5EEFA}.act.maa span{background:var(--maa-soft)}.act.oth span{background:var(--brand-soft)}
+.cr{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;padding:7px 0;cursor:pointer}
+.cr .ic{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:16px}
+.cr .bk{height:5px;border-radius:3px;background:var(--line);margin-top:5px;overflow:hidden}
+.cr .bk span{display:block;height:100%;border-radius:3px}
+.cr .a{font-weight:700}
+.cr .pc{font-size:12px;color:var(--muted);text-align:left;min-width:30px}
+.day{font-size:13px;color:var(--muted);font-weight:600;padding:12px 0 4px;display:flex;justify-content:space-between}
+.row{display:grid;grid-template-columns:38px 1fr auto;gap:11px;align-items:center;padding:9px 0;cursor:pointer;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row .ic{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-size:17px}
+.row .n{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .s{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .a{font-weight:700;font-size:16px;text-align:left}
+.row.income .a{color:var(--pos)}.row.maaser .a{color:var(--maa)}
+.row .a small{display:block;font-size:11.5px;font-weight:500;color:var(--muted)}
+.empty{color:var(--muted);text-align:center;padding:22px 0}
 .muted{color:var(--muted);font-size:13.5px}
-.quick{display:flex;gap:8px;flex-wrap:wrap}
-.pill{border:0;border-radius:999px;padding:12px 20px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:15px}
-.pill.exp{background:var(--exp);color:#fff}.pill.inc{background:var(--inc);color:#fff}.pill.maa{background:var(--maa);color:#3A2600}
-.pill.ink{background:var(--ink);color:#fff}.pill.ghost{background:#E3E6F5;color:var(--ink)}.pill.danger{background:#FCE3DE;color:#B42B16}
-.pill.sm{padding:7px 13px;font-size:13.5px}
-.pill:disabled{opacity:.55;cursor:default}
-
-/* month ribbons */
-.ribbons{display:flex;flex-direction:column;gap:12px}
-.rib{display:grid;grid-template-columns:62px 1fr auto;align-items:center;gap:10px;cursor:pointer}
-.rib .m{font-family:var(--serif);font-weight:700;font-size:17px}
-.rib .track{height:14px;border-radius:7px;background:#E3E6F5;display:flex;overflow:hidden}
-.rib .track span{height:100%}
-.rib .t{font-weight:600;font-size:14.5px;min-width:72px;text-align:left}
-.rib .sub{grid-column:2/4;font-size:12.5px;color:var(--muted);margin-top:-6px}
-.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-top:12px}
-.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:5px;vertical-align:-1px}
-
-/* category bars */
-.cbar{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;padding:7px 0}
-.cbar .ic{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:16px}
-.cbar .nm{font-size:14.5px}
-.cbar .bk{height:6px;border-radius:3px;background:#E3E6F5;margin-top:4px;overflow:hidden}
-.cbar .bk span{display:block;height:100%;border-radius:3px}
-.cbar .a{font-weight:600;font-size:14.5px}
-
-/* transactions timeline */
-.tl{position:relative}
-.mhead{font-family:var(--serif);font-weight:700;font-size:16px;color:var(--ink);margin:18px 0 4px;display:flex;justify-content:space-between}
-.mhead span{font-family:var(--sans);font-weight:400;font-size:12.5px;color:var(--muted)}
-.tx{display:grid;grid-template-columns:40px 1fr auto;gap:12px;align-items:center;padding:10px 0;cursor:pointer;border-bottom:1px dashed var(--line)}
-.tx:last-child{border-bottom:0}
-.tx .ic{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-size:18px;color:#fff}
-.tx .d1{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tx .d2{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tx .a{font-weight:700;font-size:15.5px}
-.tx.expense .a{color:var(--exp)}.tx.income .a{color:var(--inc)}.tx.maaser .a{color:var(--maa-ink)}
-.empty{color:var(--muted);text-align:center;padding:28px 0}
-
-/* filters */
-.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
-.filters>*{flex:1;min-width:130px}
-input,select,textarea{width:100%;padding:11px 13px;border:1.5px solid var(--line);border-radius:12px;background:var(--paper);outline:none}
-input:focus,select:focus,textarea:focus{border-color:var(--ink-soft)}
-label.f{display:block;font-size:13px;color:var(--muted);margin:14px 0 6px}
-
-/* maaser coin */
-.coinwrap{display:flex;align-items:center;gap:22px;flex-wrap:wrap}
-.coin{width:150px;height:150px;flex:none}
-.coin .big{font-family:var(--serif);font-weight:900}
-.kv{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line);font-size:15px}
-.kv:last-child{border:0}.kv b{font-weight:600}
-
-/* compare */
-.cmp{display:grid;grid-template-columns:62px 1fr auto;gap:4px 10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line)}
-.cmp .m{font-family:var(--serif);font-weight:700;grid-row:span 2}
-.cmp .ln{height:9px;border-radius:5px}
-.cmp .v{font-size:13px;text-align:left}
-.gap{grid-column:2/4;font-size:12.5px}
-.bk-row{padding:11px 0;border-bottom:1px dashed var(--line)}
-.bk-row .top{display:flex;justify-content:space-between;gap:10px;font-weight:600}
-.bk-row .meta{font-size:12.5px;color:var(--muted);margin-top:2px}
-.bk-row .act{display:flex;gap:6px;align-items:center;margin-top:7px;flex-wrap:wrap}
-.tag{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:3px 10px;font-size:12.5px;font-weight:500}
-.tag.ok{background:#D7F3E6;color:#0B6B47}.tag.no{background:#FDE2DC;color:#B42B16}.tag.card{background:#E3E6F5;color:var(--ink)}
-.bk-row.dim{opacity:.55}
-.syncmsg{margin-top:10px;font-size:14px}
-.ok-t{color:#0B6B47}.er-t{color:#B42B16}
-
-/* obligations */
-.ob{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:12px 0;border-bottom:1px dashed var(--line);cursor:pointer}
-.ob .n{font-weight:600}
-.ob .a{font-family:var(--serif);font-weight:700;font-size:18px}
-.ob .s{font-size:12.5px;color:var(--muted)}
-.ob .prog{grid-column:1/3;height:6px;border-radius:3px;background:#E3E6F5;overflow:hidden;margin-top:6px}
-.ob .prog span{display:block;height:100%;background:var(--ink-soft)}
-.totals{display:flex;gap:22px;flex-wrap:wrap;margin:4px 0 6px}
-.totals div{font-size:13px;color:var(--muted)}
-.totals b{display:block;font-family:var(--serif);font-size:24px;color:var(--text)}
-
-/* nav */
-nav.bottom{position:fixed;bottom:calc(12px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:10;
-  background:var(--ink-deep);border-radius:999px;padding:6px;display:flex;gap:2px;box-shadow:0 10px 30px rgba(16,22,74,.45);width:min(560px,calc(100% - 24px))}
-nav.bottom button{flex:1;border:0;background:none;color:rgba(255,255,255,.62);padding:8px 2px;border-radius:999px;cursor:pointer;font-size:11.5px;display:flex;flex-direction:column;align-items:center;gap:2px;position:relative}
-nav.bottom svg{width:21px;height:21px}
-nav.bottom button.on{background:rgba(255,255,255,.13);color:#fff}
-.badge{position:absolute;top:2px;left:calc(50% - 22px);background:var(--exp);color:#fff;border-radius:999px;font-size:10px;padding:1px 5px;font-weight:700}
-.fab{position:fixed;bottom:calc(84px + env(safe-area-inset-bottom));left:max(18px,calc(50% - 470px));width:60px;height:60px;border-radius:50%;border:0;background:var(--maa);color:#3A2600;font-size:32px;font-weight:300;box-shadow:0 8px 22px rgba(245,164,0,.45);cursor:pointer;z-index:9}
-
-/* modal / form */
-.mbg{position:fixed;inset:0;background:rgba(16,22,74,.55);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.mb{display:grid;grid-template-columns:58px 1fr;gap:4px 10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.mb .m{font-weight:700;grid-row:span 2}
+.mb .ln{display:flex;align-items:center;gap:8px;font-size:13px}
+.mb .ln i{display:block;height:8px;border-radius:4px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-top:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:4px;vertical-align:-1px}
+.ck{padding:10px 0;border-bottom:1px solid var(--line)}
+.ck:last-child{border:0}
+.ck .top{display:flex;justify-content:space-between;gap:10px;font-weight:600}
+.ck .meta{font-size:12.5px;color:var(--muted);margin-top:2px}
+.ck .btns{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;align-items:center}
+.tag{display:inline-block;border-radius:999px;padding:2px 9px;font-size:12.5px;font-weight:600}
+.tag.ok{background:#DDF2E8;color:#0B6B47}.tag.no{background:#FBE3DF;color:#A72B1F}.tag.gr{background:#EEF1EF;color:var(--muted)}
+.kv{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.kv:last-child{border:0}.kv b{font-weight:700;white-space:nowrap}
+.bigmaa{font-size:38px;font-weight:800;color:var(--maa)}
+.btn{border:0;border-radius:12px;padding:11px 16px;font-weight:700;cursor:pointer;background:var(--brand);color:#fff}
+.btn.soft{background:var(--brand-soft);color:var(--brand)}.btn.red{background:#FBE3DF;color:#A72B1F}.btn.maa{background:var(--maa);color:#fff}
+.btn.sm{padding:6px 11px;font-size:13.5px;border-radius:10px}
+.btn:disabled{opacity:.55}
+input,select,textarea{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radius:12px;background:#fff;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--brand)}
+label.f{display:block;font-size:13px;color:var(--muted);margin:13px 0 5px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}.filters>*{flex:1;min-width:120px}
+nav.bn{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);z-index:10;padding-bottom:env(safe-area-inset-bottom)}
+nav.bn .in{max-width:760px;margin:0 auto;display:flex}
+nav.bn button{flex:1;border:0;background:none;padding:8px 0 9px;color:var(--muted);font-size:11.5px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;position:relative}
+nav.bn svg{width:22px;height:22px}
+nav.bn button.on{color:var(--brand);font-weight:700}
+.badge{position:absolute;top:3px;left:calc(50% - 22px);background:var(--red);color:#fff;border-radius:999px;font-size:10px;padding:0 5px;font-weight:700}
+.mbg{position:fixed;inset:0;background:rgba(10,30,22,.45);z-index:20;display:flex;align-items:flex-end;justify-content:center}
 @media(min-width:700px){.mbg{align-items:center}}
-.modal{background:var(--sheet);width:100%;max-width:540px;max-height:94vh;overflow:auto;border-radius:26px 26px 0 0}
-@media(min-width:700px){.modal{border-radius:26px}}
-.mtop{padding:16px 18px 18px;color:#fff;position:sticky;top:0;z-index:1}
-.mtop.expense{background:var(--exp)}.mtop.income{background:var(--inc)}.mtop.maaser{background:var(--maa);color:#3A2600}.mtop.ink{background:var(--ink)}
-.mtop .row1{display:flex;justify-content:space-between;align-items:center}
-.mtop h3{margin:0;font-family:var(--serif);font-size:20px}
-.x{border:0;background:rgba(255,255,255,.2);color:inherit;width:34px;height:34px;border-radius:50%;font-size:20px;cursor:pointer}
-.seg{display:flex;gap:6px;margin-top:12px}
-.seg button{flex:1;border:1.5px solid rgba(255,255,255,.5);background:none;color:inherit;border-radius:999px;padding:7px;font-weight:600;cursor:pointer}
-.seg button.on{background:#fff;color:var(--text);border-color:#fff}
-.amt{font-family:var(--serif);font-weight:900;font-size:44px;text-align:center;background:none;border:0;color:inherit;padding:6px 0 0;direction:ltr}
-.amt::placeholder{color:rgba(255,255,255,.55)}
-.mtop.maaser .amt::placeholder{color:rgba(58,38,0,.4)}
-.amt:focus{border:0;outline:none}
-.mbody{padding:4px 18px 22px}
-.cgrp{font-size:12.5px;color:var(--muted);margin:10px 0 6px}
+.modal{background:var(--bg);width:100%;max-width:520px;max-height:94vh;overflow:auto;border-radius:24px 24px 0 0;padding:0 0 20px}
+@media(min-width:700px){.modal{border-radius:24px}}
+.mh{background:var(--card);padding:14px 16px 16px;border-radius:24px 24px 0 0;position:sticky;top:0;z-index:1}
+.mh .r1{display:flex;justify-content:space-between;align-items:center}
+.mh h3{margin:0;font-size:18px}
+.x{border:0;background:var(--bg);width:34px;height:34px;border-radius:50%;font-size:20px;cursor:pointer}
+.seg{display:flex;background:var(--bg);border-radius:12px;padding:3px;margin-top:12px}
+.seg button{flex:1;border:0;background:none;border-radius:9px;padding:8px;font-weight:700;cursor:pointer;color:var(--muted)}
+.seg button.on{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.amt{font-size:40px;font-weight:800;text-align:center;border:0;background:none;padding:8px 0 0;direction:ltr}
+.amt:focus{outline:none;border:0}
+.mbd{padding:6px 16px}
+.cg{font-size:12.5px;color:var(--muted);margin:10px 0 6px}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{border:1.5px solid var(--line);background:var(--paper);border-radius:999px;padding:6px 12px;cursor:pointer;font-size:14px;display:inline-flex;gap:5px;align-items:center}
-.chip.on{border-color:var(--c,var(--ink));background:var(--c,var(--ink));color:#fff}
-.sugg{font-size:12px;color:var(--ink-soft);margin-top:6px;min-height:16px}
-.heb{font-size:12.5px;color:var(--ink-soft);margin-top:5px}
-.rbox{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.rbox img{max-height:70px;border-radius:10px}
-.check{display:flex;align-items:center;gap:9px;margin-top:14px;font-size:14.5px}
-.check input{width:20px;height:20px}
-.actions{display:flex;gap:8px;margin-top:20px}
-.actions .pill{flex:1;justify-content:center}
-.actions .pill.danger{flex:none}
+.chip{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:6px 12px;cursor:pointer;font-size:14px}
+.chip.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.note{background:var(--brand-soft);color:var(--brand);border-radius:12px;padding:9px 12px;font-size:13.5px;margin-top:10px}
+.sugg{font-size:12.5px;color:var(--brand);min-height:16px;margin-top:6px}
+.heb{font-size:12.5px;color:var(--brand);margin-top:4px}
+.rbox{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.rbox img{max-height:70px;border-radius:10px}
+.check{display:flex;align-items:center;gap:9px;margin-top:13px;font-size:14.5px}.check input{width:20px;height:20px}
+.mfoot{display:flex;gap:8px;margin-top:18px}.mfoot .btn{flex:1}.mfoot .btn.red{flex:none}
 .hidden{display:none!important}
-.toast{position:fixed;bottom:150px;left:50%;transform:translateX(-50%);background:var(--ink-deep);color:#fff;padding:10px 20px;border-radius:999px;z-index:40;font-size:14px;opacity:0;transition:.25s;pointer-events:none}
+.toast{position:fixed;bottom:84px;left:50%;transform:translateX(-50%);background:#13201B;color:#fff;padding:10px 18px;border-radius:999px;z-index:40;font-size:14px;opacity:0;transition:.25s;pointer-events:none;max-width:90vw;text-align:center}
 .toast.on{opacity:1}
-.login{max-width:380px;margin:18vh auto 0;padding:0 18px;color:#fff;text-align:center}
-.login .year{font-size:72px}
-.login input{margin-top:24px;text-align:center}
-.ed{display:grid;grid-template-columns:44px 1fr auto;gap:8px;align-items:center;padding:7px 0;border-bottom:1px dashed var(--line)}
-.ed input{padding:8px 10px}
-.ed .ic{width:44px;text-align:center;font-size:18px;padding:8px 0}
-code{background:#E3E6F5;padding:2px 7px;border-radius:6px;font-size:12.5px;direction:ltr;display:inline-block;word-break:break-all}
+.login{max-width:360px;margin:0 auto;padding:22vh 20px 0;text-align:center}
+.login h1{color:var(--brand);font-size:30px}
+.ed{display:grid;grid-template-columns:44px 1fr auto;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
+.ed input{padding:8px 10px}.ed .ic{text-align:center;font-size:18px;padding:8px 0}
+.ob{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:11px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.ob:last-child{border:0}
+.ob .n{font-weight:600}.ob .a{font-weight:700;font-size:16px}.ob .s{font-size:12.5px;color:var(--muted)}
+.totals{display:flex;gap:20px;flex-wrap:wrap}.totals div{font-size:13px;color:var(--muted)}.totals b{display:block;font-size:20px;color:var(--text)}
 .viewer img{max-width:100%;border-radius:12px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -201,26 +150,24 @@ const API = 'https://opex.meny85502.workers.dev';
 const BRIDGE = 'http://127.0.0.1:17345'; // הגשר שרץ על המחשב (עדכון מהבנק)
 // =======================
 
-const PAY_METHODS = ['אשראי', 'מזומן', 'העברה', 'הוראת קבע', "צ'ק"];
+const PAY_METHODS = ['מזומן', 'אשראי', 'העברה', 'הוראת קבע', "צ'ק"];
 const TYPE_LABEL = { expense: 'הוצאה', income: 'הכנסה', maaser: 'מעשרות' };
-const GROUPS = [['קבועות', 'var(--g-fixed)', '#3554D1'], ['שוטפות', 'var(--g-run)', '#E5482F'], ['חד פעמיות', 'var(--g-once)', '#8E2C8A']];
+const GROUPS = ['קבועות', 'שוטפות', 'חד פעמיות'];
+const GCOL = { 'קבועות': '#2D6CDF', 'שוטפות': '#0E8A5F', 'חד פעמיות': '#C77700' };
 const CARD_SOURCES = ['visaCal', 'max', 'isracard', 'amex'];
-const CARD_BILL_RE = /ויזה|מאסטרקארד|מסטרקארד|ישראכרט|ישראכארט|כאל|מקס איט|דיינרס|אמריקן אקספרס|לאומי קארד|כרטיסי אשראי/i;
-const MAASER_RE = /צדקה|צדקות|תרומה|תרומות|עזר מציון|קופת העיר|יתומים|הכנסת כלה|קופת רבי מאיר|קרן עולם התורה|מעשר/;
-const S = { token: lsGet('kb_token'), boot: null, hy: null, txs: [], bank: [], view: lsGet('kb_view') || 'home', maaser: null,
-  filter: { type: '', cat: '', month: '', q: '' }, showHidden: false };
+const SRC_NAME = { leumi: 'לאומי', hapoalim: 'הפועלים', discount: 'דיסקונט', mizrahi: 'מזרחי', visaCal: 'כאל', max: 'מקס', isracard: 'ישראכרט', amex: 'אמקס', beinleumi: 'הבינלאומי', mercantile: 'מרכנתיל' };
+const S = { token: lsGet('kb_token'), boot: null, hy: null, txs: [], bank: [], maaser: null, view: lsGet('kb_view') || 'home', month: null, filter: { type: '', cat: '', month: '', q: '' } };
 
 function lsGet(k) { try { return localStorage.getItem(k) } catch { return null } }
 function lsSet(k, v) { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v) } catch {} }
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const fmt = n => (Math.round((+n || 0) * 100) / 100).toLocaleString('he-IL', { maximumFractionDigits: 2 });
+const fmt = n => (Math.round((+n || 0) * 100) / 100).toLocaleString('he-IL', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 const fmt0 = n => Math.round(+n || 0).toLocaleString('he-IL');
-const money = n => `<span class="num">₪${fmt(n)}</span>`;
-const money0 = n => `<span class="num">₪${fmt0(n)}</span>`;
-function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('on'), 2600); }
+const M = n => `<span class="num">${n < 0 ? '−' : ''}₪${fmt(Math.abs(n || 0))}</span>`;
+const M0 = n => `<span class="num">${Math.round(n || 0) < 0 ? '−' : ''}₪${fmt0(Math.abs(n || 0))}</span>`;
+function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('on'), 3200); }
 
-// ---------- API ----------
 async function api(path, opts = {}) {
   const r = await fetch(API + path, { method: opts.method || 'GET', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + (S.token || '') }, body: opts.body ? JSON.stringify(opts.body) : undefined });
   const d = await r.json().catch(() => ({}));
@@ -246,184 +193,240 @@ function gem(n) {
 }
 const hMonth = iso => fHeM.format(isoToDate(iso));
 const hDate = iso => gem(hparts(iso).d) + ' ' + hMonth(iso);
+const gDate = iso => { const [, m, d] = iso.split('-'); return `${+d}.${+m}`; };
+const WD = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
 function roshHashana(y) { const d = new Date(y - 3761, 8, 1, 12); for (let i = 0; i < 45; i++) { const p = hparts(dateToIso(d)); if (p.m === 'Tishri' && p.d === 1) return dateToIso(d); d.setDate(d.getDate() + 1); } }
 function yearRange(y) { const a = roshHashana(y), b = isoToDate(roshHashana(y + 1)); b.setDate(b.getDate() - 1); return [a, dateToIso(b)]; }
-const gDate = iso => { const [y, m, d] = iso.split('-'); return `${+d}.${+m}`; };
+const _ym = {};
+function yearMonths(y) {
+  if (_ym[y]) return _ym[y];
+  const [a, b] = yearRange(y), out = []; const d = isoToDate(a), end = isoToDate(b);
+  while (d <= end) { const n = hMonth(dateToIso(d)); if (!out.includes(n)) out.push(n); d.setDate(d.getDate() + 1); }
+  return (_ym[y] = out);
+}
 
 // ---------- טעינה ----------
 async function loadBoot() { S.boot = await api('/api/bootstrap'); buildDescMap(); }
 async function loadYear() {
   const [a, b] = yearRange(S.hy);
   const [t, m, bk] = await Promise.all([api(`/api/tx?from=${a}&to=${b}`), api('/api/maaser'), api(`/api/bank?from=${a}&to=${b}`)]);
-  S.txs = t.items; S.maaser = m; S.bank = bk.items; matchBank();
+  S.txs = t.items; S.maaser = m; S.bank = bk.items;
 }
-async function reloadAll() { await Promise.all([loadBoot(), loadYear()]); render(); }
+async function reloadAll() {
+  await loadBoot();
+  if (S.boot.pending > 0) { try { await api('/api/bank/process', { method: 'POST' }); await loadBoot(); } catch (e) {} }
+  await loadYear(); render();
+}
 const cats = type => (S.boot?.categories || []).filter(c => c.type === type);
 const catById = id => (S.boot?.categories || []).find(c => c.id === id);
 
-// ---------- הצעות אוטומטיות ----------
-function ruleKey(d) { return String(d || '').replace(/[0-9*#\-_/\\.]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 40); }
+// ---------- הצעות ----------
 let DESC = {};
 function buildDescMap() { DESC = {}; (S.boot.descriptions || []).forEach(d => { const k = d.type + '|' + d.description; if (!DESC[k] && d.category_id) DESC[k] = d.category_id; }); }
 function suggest(text, type) {
   if (!text) return null;
-  const rule = (S.boot.rules || []).find(r => r.pattern === ruleKey(text) && r.type === type);
-  if (rule && rule.category_id) return rule.category_id;
   if (DESC[type + '|' + text.trim()]) return DESC[type + '|' + text.trim()];
   const s = text.toLowerCase(); let best = null, len = 0;
   cats(type).filter(c => c.active && c.keywords).forEach(c => c.keywords.split(',').forEach(k => { k = k.trim().toLowerCase(); if (k && k.length > len && s.includes(k)) { best = c.id; len = k.length; } }));
   return best;
 }
 
-// ---------- התאמת תנועות בנק לרישום ----------
-const isCardSrc = b => CARD_SOURCES.includes(b.source);
-const isCardBill = b => !isCardSrc(b) && b.amount < 0 && CARD_BILL_RE.test(b.description + ' ' + (b.memo || ''));
-function matchBank() {
-  const byId = {}; S.txs.forEach(t => byId[t.id] = t);
-  const used = new Set();
-  S.bank.forEach(b => { b.match = null; b.card = isCardBill(b); if (b.tx_id && byId[b.tx_id]) { b.match = byId[b.tx_id]; used.add(b.tx_id); } });
-  S.bank.forEach(b => {
-    if (b.match || b.card || b.status === 'ignored') return;
-    const out = b.amount < 0, amt = Math.abs(b.amount), bd = isoToDate(b.date);
-    let best = null, bdiff = 99;
-    S.txs.forEach(t => {
-      if (used.has(t.id) || (out ? t.type === 'income' : t.type !== 'income') || Math.abs(t.amount - amt) > 0.5) return;
-      const diff = Math.abs((isoToDate(t.date) - bd) / 864e5);
-      if (diff <= 6 && diff < bdiff) { best = t; bdiff = diff; }
-    });
-    if (best) { b.match = best; used.add(best.id); }
-  });
-  S.unmatched = S.bank.filter(b => !b.match && !b.card && b.status !== 'ignored').length;
+// ---------- חישובים ----------
+function sums(list) { const r = { income: 0, expense: 0, maaser: 0, liable: 0 }; list.forEach(t => { r[t.type] += t.amount; if (t.type === 'income' && t.maaser_liable) r.liable += t.amount; }); return r; }
+const inMonth = (list, m) => list.filter(t => hMonth(t.date) === m);
+function bankBalance() {
+  const accs = (S.boot.accounts || []).filter(a => !CARD_SOURCES.includes(a.source));
+  if (!accs.length) return null;
+  const upcoming = (S.boot.upcoming || []).reduce((a, u) => a + u.s, 0);
+  const total = accs.reduce((a, x) => a + x.balance, 0);
+  return { total, upcoming, after: total + upcoming, upd: accs.map(a => a.updated_at).sort().pop() };
 }
-function bankName(b) {
-  const m = String(b.memo || '').match(/העברה (?:אל|מאת):\s*([^\d]+?)\s+\d/);
-  return (m ? m[1] : b.description).trim();
-}
+function ago(iso) { const min = Math.round((Date.now() - new Date(iso)) / 6e4); if (min < 2) return 'עכשיו'; if (min < 60) return `לפני ${min} דקות`; const h = Math.round(min / 60); if (h < 24) return `לפני ${h} שעות`; return `לפני ${Math.round(h / 24)} ימים`; }
 
 // ---------- מסגרת ----------
 function render() {
   const root = $('#root');
   if (!S.token) { root.innerHTML = loginHTML(); $('#pw').focus(); return; }
-  if (!S.boot) { root.innerHTML = `<div class="login"><div class="year">…</div></div>`; return; }
-  const views = { home: homeHTML, list: listHTML, obl: oblHTML, maaser: maaserHTML, bank: bankHTML, settings: settingsHTML };
+  if (!S.boot) { root.innerHTML = '<div class="login"><h1>כספי הבית</h1><p class="muted">טוען…</p></div>'; return; }
+  const ms = yearMonths(S.hy);
+  if (!S.month || !ms.includes(S.month)) { const cur = hMonth(todayIso()); S.month = ms.includes(cur) && hparts(todayIso()).y === S.hy ? cur : ms[0]; }
+  const views = { home: homeHTML, reports: reportsHTML, list: listHTML, maaser: maaserHTML, check: checkHTML, obl: oblHTML, settings: settingsHTML };
   const v = views[S.view] ? S.view : 'home';
-  root.innerHTML = `${heroHTML(v === 'home')}
-  <main class="sheet ${v === 'home' ? '' : 'plain'}">${views[v]()}</main>
-  <button class="fab" onclick="openTx({type:'expense'})" aria-label="רישום חדש">+</button>
-  <nav class="bottom">
-    ${navBtn('home', 'ראשי', '<path d="M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/>')}
-    ${navBtn('list', 'תנועות', '<path d="M4 6h16M4 12h16M4 18h10"/>')}
-    ${navBtn('obl', 'התחייבויות', '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>')}
-    ${navBtn('maaser', 'מעשרות', '<circle cx="12" cy="12" r="8"/><path d="M12 8v8M9 10.5h6"/>')}
-    ${navBtn('bank', 'בפועל', '<path d="M3 10h18M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 21h18M12 3l9 5H3z"/>', S.unmatched)}
-  </nav>`;
+  root.innerHTML = `<div class="wrap">${heroHTML(v === 'home')}${views[v]()}</div>
+  <nav class="bn"><div class="in">
+    ${nb('home', 'חשבון', '<path d="M3 10.5L12 4l9 6.5V20a1 1 0 01-1 1h-5v-6h-6v6H4a1 1 0 01-1-1z"/>')}
+    ${nb('reports', 'דוחות', '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>')}
+    ${nb('maaser', 'מעשרות', '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v9M9 10h6"/>')}
+    ${nb('check', 'בדיקה', '<path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/>', checkIssues())}
+    ${nb('obl', 'התחייבויות', '<rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>')}
+  </div></nav>`;
+  const on = document.querySelector('.mt.on'); if (on) on.scrollIntoView({ inline: 'center', block: 'nearest' });
 }
-function heroHTML(full) {
-  const s = sums(S.txs), m = S.maaser || {};
-  return `<header class="hero">
-    <div class="bar"><div class="brand">כספי הבית</div>
-      <button class="ibtn ${S.syncing ? 'spin' : ''}" onclick="bridgeUpdate()" title="עדכון מהבנק"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 01-15.5 6.2M3 12A9 9 0 0118.5 5.8"/><path d="M18.5 2v3.8h-3.8M5.5 22v-3.8h3.8"/></svg></button>
-      <button class="ibtn" onclick="go('settings')" title="הגדרות"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg></button>
-    </div>
-    ${full ? `<div class="yearrow"><button onclick="chYear(-1)" aria-label="שנה קודמת">›</button><div class="year">${gem(S.hy)}</div><button onclick="chYear(1)" aria-label="שנה הבאה">‹</button></div>
-    <div class="flows">
-      <div class="flow in"><div class="k">נכנס</div><div class="v">${money0(s.income)}</div></div>
-      <div class="flow out"><div class="k">יצא</div><div class="v">${money0(s.expense)}</div></div>
-      <div class="flow ma"><div class="k">מעשרות לתשלום</div><div class="v">${money0(m.balance)}</div></div>
-    </div>` : `<div class="yearrow" style="margin:10px 0 0"><button onclick="chYear(-1)" aria-label="שנה קודמת" style="font-size:24px">›</button><div style="font-family:var(--serif);font-weight:700;font-size:26px">${gem(S.hy)}</div><button onclick="chYear(1)" aria-label="שנה הבאה" style="font-size:24px">‹</button></div>`}
-  </header>`;
-}
-function navBtn(v, label, path, badge) {
-  return `<button class="${S.view === v ? 'on' : ''}" onclick="go('${v}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${path}</svg>${label}${badge ? `<span class="badge">${badge}</span>` : ''}</button>`;
-}
+function nb(v, label, path, badge) { return `<button class="${S.view === v ? 'on' : ''}" onclick="go('${v}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${path}</svg>${label}${badge ? `<span class="badge">${badge}</span>` : ''}</button>`; }
 function go(v) { S.view = v; lsSet('kb_view', v); render(); window.scrollTo(0, 0); }
-async function chYear(d) { S.hy += d; render(); try { await loadYear(); render(); } catch (e) { toast(e.message); } }
-function loginHTML() {
-  return `<div class="login"><div class="year">כספי הבית</div>
-    <form onsubmit="doLogin(event)"><input id="pw" type="password" autocomplete="current-password" placeholder="סיסמה">
-    <button class="pill maa" style="width:100%;justify-content:center;margin-top:12px">כניסה</button></form></div>`;
+function setMonth(m) { S.month = m; render(); }
+async function chYear(d) { S.hy += d; S.month = null; render(); try { await loadYear(); render(); } catch (e) { toast(e.message); } }
+function heroHTML(full) {
+  const b = bankBalance();
+  const top = `<div class="htop"><div class="t">כספי הבית</div>
+      <button class="ib ${S.syncing ? 'spin' : ''}" onclick="bridgeUpdate()" title="עדכון מהבנק ומהאשראי" aria-label="עדכון מהבנק"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 01-15.5 6.2M3 12A9 9 0 0118.5 5.8"/><path d="M18.5 2v3.8h-3.8M5.5 22v-3.8h3.8"/></svg></button>
+      <button class="ib" onclick="go('settings')" title="הגדרות" aria-label="הגדרות"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M2.5 12h3M18.5 12h3M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg></button></div>`;
+  if (!full) return `<div class="hero" style="padding-bottom:14px">${top}${S.syncMsg ? `<div class="upd">${S.syncMsg}</div>` : ''}</div>`;
+  const bal = b ? `<div class="bal-l">בחשבון עכשיו</div><div class="bal">${M0(b.total)}</div>
+      <div class="bal-sub"><div>אשראי שעוד לא ירד<b class="num">₪${fmt0(-b.upcoming)}</b></div><div>אחרי האשראי<b>${M0(b.after)}</b></div></div>
+      <div class="upd">${S.syncMsg ? S.syncMsg : 'עודכן ' + ago(b.upd)}</div>`
+    : `<div class="bal-l">בחשבון עכשיו</div><div style="font-size:20px;font-weight:700;margin-top:4px">לחץ על כפתור העדכון כדי לראות את היתרה</div>${S.syncMsg ? `<div class="upd">${S.syncMsg}</div>` : ''}`;
+  return `<div class="hero">${top}${bal}</div>`;
 }
-async function doLogin(e) {
-  e.preventDefault();
-  try { const d = await api('/api/login', { method: 'POST', body: { password: $('#pw').value } }); S.token = d.token; lsSet('kb_token', d.token); render(); await reloadAll(); }
-  catch (err) { toast(err.message); }
-}
+function loginHTML() { return `<div class="login"><h1>כספי הבית</h1><form onsubmit="doLogin(event)"><input id="pw" type="password" autocomplete="current-password" placeholder="סיסמה"><button class="btn" style="width:100%;margin-top:12px">כניסה</button></form></div>`; }
+async function doLogin(e) { e.preventDefault(); try { const d = await api('/api/login', { method: 'POST', body: { password: $('#pw').value } }); S.token = d.token; lsSet('kb_token', d.token); render(); await reloadAll(); } catch (err) { toast(err.message); } }
+function yearLine() { return `<div class="yearline"><button onclick="chYear(-1)">› ${gem(S.hy - 1)}</button><b>שנת ${gem(S.hy)}</b><button onclick="chYear(1)">${gem(S.hy + 1)} ‹</button></div>`; }
+function monthsStrip() { return `<div class="months">${yearMonths(S.hy).map(m => `<button class="mt ${m === S.month ? 'on' : ''}" onclick="setMonth('${m}')">${m}</button>`).join('')}</div>`; }
 
-// ---------- חישובים ----------
-function sums(list) {
-  const r = { income: 0, expense: 0, maaser: 0, liable: 0 };
-  list.forEach(t => { r[t.type] += t.amount; if (t.type === 'income' && t.maaser_liable) r.liable += t.amount; });
-  return r;
-}
-function byMonth(list, keyFn) {
-  const out = [], idx = {};
-  [...list].sort((a, b) => a.date.localeCompare(b.date)).forEach(x => { const k = hMonth(x.date); if (!idx[k]) { idx[k] = { name: k, items: [] }; out.push(idx[k]); } idx[k].items.push(x); });
-  return out;
-}
-
-// ---------- ראשי ----------
+// ---------- חשבון ----------
 function homeHTML() {
-  const months = byMonth(S.txs).map(mo => {
-    const g = {}; GROUPS.forEach(([n]) => g[n] = 0);
-    let exp = 0, inc = 0, maa = 0;
-    mo.items.forEach(t => { if (t.type === 'expense') { exp += t.amount; const c = catById(t.category_id); g[c?.grp || 'שוטפות'] = (g[c?.grp || 'שוטפות'] || 0) + t.amount; } else if (t.type === 'income') inc += t.amount; else maa += t.amount; });
-    return { ...mo, g, exp, inc, maa };
-  });
-  const max = Math.max(1, ...months.map(m => m.exp));
-  const byCat = {}; S.txs.filter(t => t.type === 'expense').forEach(t => byCat[t.category_id] = (byCat[t.category_id] || 0) + t.amount);
-  const catRows = Object.entries(byCat).sort((a, b) => b[1] - a[1]); const cmax = catRows[0]?.[1] || 1;
-  const recent = S.txs.slice(0, 7);
-  return `
-  <div class="quick">
-    <button class="pill exp" onclick="openTx({type:'expense'})">+ הוצאה</button>
-    <button class="pill inc" onclick="openTx({type:'income'})">+ הכנסה</button>
-    <button class="pill maa" onclick="openTx({type:'maaser'})">+ מעשרות</button>
+  const list = inMonth(S.txs, S.month), s = sums(list);
+  const byCat = {}; list.filter(t => t.type === 'expense').forEach(t => byCat[t.category_id] = (byCat[t.category_id] || 0) + t.amount);
+  const crs = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
+  return `${yearLine()}${monthsStrip()}
+  <div class="actions-row">
+    <button class="act cash" onclick="openTx({type:'expense',payment_method:'מזומן'})"><span>💵</span>הוצאה במזומן</button>
+    <button class="act maa" onclick="openTx({type:'maaser'})"><span>🪙</span>מעשרות</button>
+    <button class="act oth" onclick="openTx({type:'expense'})"><span>＋</span>רישום אחר</button>
   </div>
-  <h2 class="sec">הוצאות לפי חודשים</h2>
-  ${months.length ? `<div class="ribbons">${months.map(m => `
-    <div class="rib" onclick="S.filter={type:'',cat:'',month:'${esc(m.name)}',q:''};go('list')">
-      <div class="m">${esc(m.name)}</div>
-      <div class="track">${GROUPS.map(([n, c]) => m.g[n] ? `<span style="width:${m.g[n] / max * 100}%;background:${c}" title="${n}: ${fmt(m.g[n])}"></span>` : '').join('')}</div>
-      <div class="t num">₪${fmt0(m.exp)}</div>
-      <div class="sub">נכנס ₪${fmt0(m.inc)}${m.maa ? `, מעשרות ₪${fmt0(m.maa)}` : ''}</div>
-    </div>`).join('')}</div>
-    <div class="legend">${GROUPS.map(([n, c]) => `<span><i style="background:${c}"></i>${n}</span>`).join('')}</div>`
-    : '<div class="empty">עדיין אין רישומים בשנה הזו. לחץ על + כדי להתחיל.</div>'}
-  ${catRows.length ? `<h2 class="sec">לאן הלך הכסף</h2>${catRows.map(([id, v]) => { const c = catById(+id) || { name: 'ללא קטגוריה', icon: '•', color: '#94A3B8' }; return `
-    <div class="cbar"><div class="ic" style="background:${c.color}22">${c.icon || '•'}</div>
-      <div><div class="nm">${esc(c.name)}</div><div class="bk"><span style="width:${v / cmax * 100}%;background:${c.color}"></span></div></div>
-      <div class="a num">₪${fmt0(v)}</div></div>`; }).join('')}` : ''}
-  ${recent.length ? `<h2 class="sec">רישומים אחרונים <small><a href="#" onclick="go('list');return false" style="color:var(--ink-soft)">לכל התנועות</a></small></h2><div class="tl">${recent.map(txHTML).join('')}</div>` : ''}`;
+  <div class="panel"><div class="sum4">
+    <div class="p">נכנס<b>${M0(s.income)}</b></div><div>יצא<b>${M0(s.expense)}</b></div><div class="m">מעשרות<b>${M0(s.maaser)}</b></div><div>נשאר<b>${M0(s.income - s.expense - s.maaser)}</b></div>
+  </div></div>
+  ${crs.length ? `<div class="panel"><div class="ph"><h2>לאן הלך הכסף ב${esc(S.month)}</h2></div>${catRows(crs, s.expense, S.month)}</div>` : ''}
+  <div class="panel"><div class="ph"><h2>תנועות ב${esc(S.month)}</h2><button class="l" onclick="S.filter={type:'',cat:'',month:'${S.month}',q:''};go('list')">חיפוש</button></div>
+    ${statement(list) || `<div class="empty">אין תנועות בחודש הזה. לחץ על העדכון למעלה כדי למשוך מהבנק ומהאשראי.</div>`}</div>`;
 }
-function txHTML(t) {
+function catRows(crs, total, month) {
+  const max = crs[0][1] || 1;
+  return crs.map(([id, v]) => { const c = catById(+id) || { name: 'ללא קטגוריה', icon: '•', color: '#94A3B8' }; return `
+    <div class="cr" onclick="S.filter={type:'expense',cat:'${id}',month:'${month || ''}',q:''};go('list')"><div class="ic" style="background:${c.color}1F">${c.icon || '•'}</div>
+      <div><div style="display:flex;justify-content:space-between;gap:8px"><span>${esc(c.name)}</span><span class="a num">₪${fmt0(v)}</span></div><div class="bk"><span style="width:${v / max * 100}%;background:${c.color}"></span></div></div>
+      <div class="pc">${Math.round(v / (total || 1) * 100)}%</div></div>`; }).join('');
+}
+function statement(list) {
+  const days = {}, order = [];
+  [...list].sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id).forEach(t => { if (!days[t.date]) { days[t.date] = []; order.push(t.date); } days[t.date].push(t); });
+  return order.map(d => { const net = days[d].reduce((a, t) => a + (t.type === 'income' ? t.amount : -t.amount), 0);
+    return `<div class="day"><span>יום ${WD[isoToDate(d).getDay()]}, ${hDate(d)} (${gDate(d)})</span><span class="num">${net >= 0 ? '+' : '−'}₪${fmt0(Math.abs(net))}</span></div>${days[d].map(rowHTML).join('')}`; }).join('');
+}
+function rowHTML(t) {
   const c = catById(t.category_id);
-  const color = t.type === 'maaser' ? 'var(--maa)' : (c?.color || (t.type === 'income' ? 'var(--inc)' : 'var(--exp)'));
-  const icon = t.type === 'maaser' ? '🪙' : (c?.icon || (t.type === 'income' ? '+' : '−'));
-  const sub = [hDate(t.date), t.type === 'maaser' ? 'מעשרות' : c?.name, t.payment_method].filter(Boolean).map(esc).join(', ');
-  return `<div class="tx ${t.type}" onclick="openTx(${t.id})">
-    <div class="ic" style="background:${color}">${icon}</div>
-    <div style="min-width:0"><div class="d1">${esc(t.description || TYPE_LABEL[t.type])}${t.has_receipt ? ' 📎' : ''}</div><div class="d2">${sub}</div></div>
-    <div class="a num">${t.type === 'income' ? '+' : ''}₪${fmt(t.amount)}</div></div>`;
+  const icon = t.type === 'maaser' ? '🪙' : (c?.icon || (t.type === 'income' ? '+' : '•'));
+  const bg = t.type === 'maaser' ? 'var(--maa-soft)' : (c?.color || '#94A3B8') + '1F';
+  const sub = [t.type === 'maaser' ? 'מעשרות' : c?.name, t.payment_method].filter(Boolean).map(esc).join(' | ');
+  return `<div class="row ${t.type}" onclick="openTx(${t.id})"><div class="ic" style="background:${bg}">${icon}</div>
+    <div style="min-width:0"><div class="n">${esc(t.description || TYPE_LABEL[t.type])}${t.has_receipt ? ' 📎' : ''}</div><div class="s">${sub}</div></div>
+    <div class="a num">${t.type === 'income' ? '+' : '−'}₪${fmt(t.amount)}${t.source === 'bank' ? '' : '<small>ידני</small>'}</div></div>`;
 }
 
-// ---------- תנועות ----------
+// ---------- דוחות ----------
+function reportsHTML() {
+  const ms = yearMonths(S.hy).map(m => ({ m, s: sums(inMonth(S.txs, m)) })).filter(x => x.s.income || x.s.expense || x.s.maaser);
+  const max = Math.max(1, ...ms.flatMap(x => [x.s.income, x.s.expense]));
+  const ys = sums(S.txs);
+  const byCat = {}; S.txs.filter(t => t.type === 'expense').forEach(t => byCat[t.category_id] = (byCat[t.category_id] || 0) + t.amount);
+  const crs = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
+  const byG = {}; S.txs.filter(t => t.type === 'expense').forEach(t => { const g = catById(t.category_id)?.grp || 'שוטפות'; byG[g] = (byG[g] || 0) + t.amount; });
+  return `${yearLine()}
+  <div class="panel"><div class="ph"><h2>שנת ${gem(S.hy)} עד היום</h2></div><div class="sum4">
+    <div class="p">נכנס<b>${M0(ys.income)}</b></div><div>יצא<b>${M0(ys.expense)}</b></div><div class="m">מעשרות<b>${M0(ys.maaser)}</b></div><div>נשאר<b>${M0(ys.income - ys.expense - ys.maaser)}</b></div></div>
+    ${ys.expense ? `<div class="legend" style="margin-top:12px">${GROUPS.map(g => `<span><i style="background:${GCOL[g]}"></i>${g} ${M0(byG[g] || 0)}</span>`).join('')}</div>` : ''}</div>
+  <div class="panel"><div class="ph"><h2>לפי חודשים</h2></div>
+    ${ms.length ? ms.map(x => `<div class="mb" onclick="S.month='${x.m}';go('home')"><div class="m">${x.m}</div>
+      <div class="ln"><i style="width:${x.s.income / max * 70}%;background:var(--pos)"></i><span class="num">+₪${fmt0(x.s.income)}</span></div>
+      <div class="ln"><i style="width:${x.s.expense / max * 70}%;background:var(--neg)"></i><span class="num">−₪${fmt0(x.s.expense)}</span>${x.s.maaser ? `<span class="muted">מעשרות ₪${fmt0(x.s.maaser)}</span>` : ''}</div></div>`).join('')
+      + `<div class="legend"><span><i style="background:var(--pos)"></i>נכנס</span><span><i style="background:var(--neg)"></i>יצא</span></div>` : '<div class="empty">אין נתונים בשנה הזו</div>'}</div>
+  ${crs.length ? `<div class="panel"><div class="ph"><h2>הוצאות לפי קטגוריה</h2></div>${catRows(crs, ys.expense, '')}</div>` : ''}
+  <div class="panel"><div class="ph"><h2>כל התנועות</h2><button class="l" onclick="S.filter={type:'',cat:'',month:'',q:''};go('list')">חיפוש וסינון</button></div><p class="muted" style="margin:0">חיפוש לפי שם, סוג, קטגוריה וחודש.</p></div>`;
+}
 function listHTML() {
   const f = S.filter;
-  const months = byMonth(S.txs).map(m => m.name);
-  const items = S.txs.filter(t => (!f.type || t.type === f.type) && (!f.cat || String(t.category_id) === f.cat) && (!f.month || hMonth(t.date) === f.month)
-    && (!f.q || (t.description + ' ' + t.note).includes(f.q)));
-  const tot = sums(items);
-  const groups = byMonth(items).reverse();
-  const cl = f.type ? cats(f.type) : (S.boot.categories || []).filter(c => c.type !== 'income' || true);
-  return `<h2 class="sec">תנועות</h2>
+  const items = S.txs.filter(t => (!f.type || t.type === f.type) && (!f.cat || String(t.category_id) === f.cat) && (!f.month || hMonth(t.date) === f.month) && (!f.q || (t.description + ' ' + t.note).includes(f.q)));
+  const s = sums(items);
+  const cl = (f.type ? cats(f.type) : S.boot.categories).filter(c => c.active);
+  return `<div class="panel"><div class="ph"><h2>חיפוש תנועות</h2><button class="l" onclick="go('reports')">חזרה</button></div>
     <div class="filters">
-      <select onchange="S.filter.type=this.value;S.filter.cat='';render()"><option value="">הכול</option>${['expense', 'income', 'maaser'].map(t => `<option value="${t}" ${f.type === t ? 'selected' : ''}>${TYPE_LABEL[t]}</option>`).join('')}</select>
-      <select onchange="S.filter.cat=this.value;render()"><option value="">כל הקטגוריות</option>${cl.filter(c => c.active).map(c => `<option value="${c.id}" ${f.cat == c.id ? 'selected' : ''}>${c.icon || ''} ${esc(c.name)}</option>`).join('')}</select>
-      <select onchange="S.filter.month=this.value;render()"><option value="">כל החודשים</option>${months.map(m => `<option ${f.month === m ? 'selected' : ''}>${esc(m)}</option>`).join('')}</select>
-      <input placeholder="חיפוש" value="${esc(f.q)}" onchange="S.filter.q=this.value;render()">
+      <input placeholder="חיפוש לפי שם" value="${esc(f.q)}" onchange="S.filter.q=this.value;render()">
+      <select onchange="S.filter.type=this.value;S.filter.cat='';render()"><option value="">כל הסוגים</option>${['expense', 'income', 'maaser'].map(t => `<option value="${t}" ${f.type === t ? 'selected' : ''}>${TYPE_LABEL[t]}</option>`).join('')}</select>
+      <select onchange="S.filter.cat=this.value;render()"><option value="">כל הקטגוריות</option>${cl.map(c => `<option value="${c.id}" ${f.cat == c.id ? 'selected' : ''}>${c.icon || ''} ${esc(c.name)}</option>`).join('')}</select>
+      <select onchange="S.filter.month=this.value;render()"><option value="">כל השנה</option>${yearMonths(S.hy).map(m => `<option ${f.month === m ? 'selected' : ''}>${m}</option>`).join('')}</select>
     </div>
-    <div class="muted">${items.length} רישומים. נכנס ${money0(tot.income)}, יצא ${money0(tot.expense)}, מעשרות ${money0(tot.maaser)}</div>
-    ${groups.length ? groups.map(g => { const s = sums(g.items); return `<div class="mhead">${esc(g.name)}<span>יצא ₪${fmt0(s.expense)}</span></div>${[...g.items].reverse().map(txHTML).join('')}`; }).join('') : '<div class="empty">אין רישומים שמתאימים לסינון</div>'}`;
+    <div class="muted">${items.length} תנועות. נכנס ${M0(s.income)}, יצא ${M0(s.expense)}, מעשרות ${M0(s.maaser)}</div>
+    ${statement(items) || '<div class="empty">לא נמצאו תנועות</div>'}</div>`;
+}
+
+// ---------- מעשרות ----------
+function maaserHTML() {
+  const m = S.maaser || {}, s = sums(S.txs), pct = (+S.boot.settings.maaser_percent || 10) / 100;
+  const pays = S.txs.filter(t => t.type === 'maaser');
+  const byR = {}; pays.forEach(p => byR[p.description || 'ללא שם'] = (byR[p.description || 'ללא שם'] || 0) + p.amount);
+  return `${yearLine()}
+  <div class="panel"><div class="ph"><h2>נשאר לתת</h2></div><div class="bigmaa num">₪${fmt(m.balance)}</div>
+    <div class="kv"><span>חוב מעשרות מלפני ${esc(hDate(m.since || todayIso()))} ${gem(hparts(m.since || todayIso()).y)}</span><b>${M(m.opening)}</b></div>
+    <div class="kv"><span>${m.percent}% מההכנסות מאז (${M0(m.liableIncome)})</span><b>${M(m.due)}</b></div>
+    <div class="kv"><span>ניתן מאז</span><b>${M(m.paid)}</b></div>
+    <button class="btn maa" style="margin-top:12px;width:100%" onclick="openTx({type:'maaser'})">רישום מעשרות</button>
+    ${!m.opening ? `<p class="muted">חוב המעשרות מהשנה הקודמת עדיין לא הוכנס. ייבא את "מעשרות-תשפז.json" בהגדרות, או כתוב אותו בהגדרות ידנית.</p>` : ''}</div>
+  <div class="panel"><div class="ph"><h2>שנת ${gem(S.hy)}</h2></div>
+    <div class="kv"><span>הכנסות שחייבות במעשר</span><b>${M(s.liable)}</b></div><div class="kv"><span>מעשרות השנה</span><b>${M(s.liable * pct)}</b></div><div class="kv"><span>ניתן השנה</span><b>${M(s.maaser)}</b></div></div>
+  <div class="panel"><div class="ph"><h2>למי נתתי</h2></div>${Object.entries(byR).sort((a, b) => b[1] - a[1]).map(([n, v]) => `<div class="kv"><span>${esc(n)}</span><b>${M(v)}</b></div>`).join('') || '<div class="empty">עדיין לא נרשמו מעשרות השנה</div>'}</div>
+  <div class="panel"><div class="ph"><h2>כל התשלומים</h2></div>${statement(pays) || '<div class="empty">אין</div>'}</div>`;
+}
+
+// ---------- בדיקה ----------
+function cardMatch(bill) {
+  const cands = S.bank.filter(b => CARD_SOURCES.includes(b.source) && b.processed_date && Math.abs((isoToDate(b.processed_date) - isoToDate(bill.date)) / 864e5) <= 3);
+  const by = {}; cands.forEach(b => { const k = b.source + '|' + b.account; by[k] = (by[k] || 0) - b.amount; });
+  let best = null; Object.entries(by).forEach(([k, v]) => { const d = Math.abs(v + bill.amount); if (!best || d < best.d) best = { k, v, d }; });
+  return best;
+}
+function checkIssues() { return (S.bank || []).filter(b => b.status === 'offset' && b.kind === 'card_bill').filter(b => { const m = cardMatch(b); return !m || m.d > 1; }).length; }
+function checkHTML() {
+  const bills = S.bank.filter(b => b.status === 'offset' && b.kind === 'card_bill');
+  const cash = S.bank.filter(b => b.status === 'offset' && b.kind === 'cash');
+  const other = S.bank.filter(b => b.status === 'offset' && !['card_bill', 'cash'].includes(b.kind));
+  const hidden = S.bank.filter(b => b.status === 'ignored');
+  const cashRec = S.txs.filter(t => t.type !== 'income' && t.payment_method === 'מזומן');
+  const ms = yearMonths(S.hy).map(m => ({ m, w: cash.filter(b => hMonth(b.date) === m).reduce((a, b) => a - b.amount, 0), r: cashRec.filter(t => hMonth(t.date) === m).reduce((a, t) => a + t.amount, 0) })).filter(x => x.w || x.r);
+  const ckRow = (b, tag, btns) => `<div class="ck"><div class="top"><span>${esc(b.description)}</span><span class="num">${b.amount < 0 ? '−' : '+'}₪${fmt(Math.abs(b.amount))}</span></div>
+    <div class="meta">${hDate(b.date)} (${gDate(b.date)}), ${SRC_NAME[b.source] || esc(b.source)}${b.memo ? ', ' + esc(b.memo) : ''}</div><div class="btns">${tag}${btns}</div></div>`;
+  return `<div class="panel"><div class="ph"><h2>איך התוכנה מקזזת</h2></div>
+    <p class="muted" style="margin:0">כל תנועה מהבנק ומהאשראי נרשמת לבד ומקבלת קטגוריה. כדי שכלום לא ייספר פעמיים: החיוב החודשי של כרטיס אשראי בעו"ש לא נספר, כי העסקאות עצמן מגיעות מחברת האשראי. משיכת מזומן לא נספרת, כי את ההוצאות במזומן אתה רושם. אם רשמת ידנית משהו שמגיע גם מהבנק או מהאשראי, נשארים נתוני הבנק עם הקטגוריה שבחרת. מעשרות שרשמת נשארים מעשרות.</p></div>
+  <div class="panel"><div class="ph"><h2>חיובי כרטיסי אשראי</h2></div>
+    ${bills.map(b => { const m = cardMatch(b); const ok = m && m.d <= 1;
+      return ckRow(b, ok ? `<span class="tag ok">✓ תואם לעסקאות ב${SRC_NAME[m.k.split('|')[0]] || ''} ${esc(m.k.split('|')[1].slice(-4))}</span>`
+        : `<span class="tag no">${m ? `העסקאות שהגיעו: ₪${fmt(m.v)}, הפרש ₪${fmt(m.d)}` : 'לא נמצאו עסקאות של הכרטיס הזה'}</span>`,
+        ok ? '' : `<button class="btn sm soft" onclick="bankAct(${b.id},'count')">ספור כהוצאה</button>`); }).join('') || '<div class="empty">אין חיובי כרטיס בשנה הזו</div>'}
+    <p class="muted">אם כרטיס מסוים לא מחובר לגשר, לחץ "ספור כהוצאה" כדי שהחיוב שלו ייכנס בסכום אחד.</p></div>
+  <div class="panel"><div class="ph"><h2>מזומן</h2></div>
+    ${ms.map(x => `<div class="kv"><span>${x.m}: משכת ${M0(x.w)}, רשמת במזומן ${M0(x.r)}</span><b>${x.w - x.r > 1 ? `חסרים ₪${fmt0(x.w - x.r)}` : '✓'}</b></div>`).join('') || '<div class="empty">אין משיכות מזומן</div>'}
+    ${cash.map(b => ckRow(b, '<span class="tag gr">משיכת מזומן</span>', `<button class="btn sm soft" onclick="bankAct(${b.id},'count')">ספור כהוצאה</button>`)).join('')}</div>
+  ${other.length ? `<div class="panel"><div class="ph"><h2>העברות שלא נספרו</h2></div>${other.map(b => ckRow(b, '<span class="tag gr">לא נספר</span>', `<button class="btn sm soft" onclick="bankAct(${b.id},'count')">ספור</button>`)).join('')}</div>` : ''}
+  ${hidden.length ? `<div class="panel"><div class="ph"><h2>תנועות שביקשת לא לספור</h2></div>${hidden.map(b => ckRow(b, '', `<button class="btn sm soft" onclick="bankAct(${b.id},'count')">החזר</button>`)).join('')}</div>` : ''}
+  <div class="panel"><div class="ph"><h2>ייבוא קובץ</h2></div><p class="muted">קובץ JSON מכספיון. תנועות שכבר יובאו לא ייכנסו שוב.</p><input type="file" accept=".json,application/json" onchange="bankFile(this)"></div>`;
+}
+async function bankAct(id, act) { try { await api(`/api/bank/${id}/${act}`, { method: 'POST' }); await loadBoot(); await loadYear(); render(); toast(act === 'count' ? 'נספר' : 'עודכן'); } catch (e) { toast(e.message); } }
+async function bankFile(inp) { const f = inp.files[0]; if (!f) return; try { const r = await api('/api/bank/import', { method: 'POST', body: JSON.parse(await f.text()) }); toast(`נוספו ${r.added} תנועות`); await reloadAll(); } catch (e) { toast('שגיאה: ' + e.message); } }
+async function bridgeUpdate() {
+  if (S.syncing) return;
+  let st;
+  try { const ctl = new AbortController(); setTimeout(() => ctl.abort(), 2500); st = await (await fetch(BRIDGE + '/api/status', { signal: ctl.signal })).json(); }
+  catch (e) { S.syncMsg = 'הגשר לא עונה. העדכון עובד רק מהמחשב שהגשר מותקן עליו.'; go('home'); return; }
+  if (!st.accounts || !st.accounts.length) { S.syncMsg = 'לא הוגדרו חשבונות בגשר'; go('home'); return; }
+  S.syncing = true; S.syncMsg = 'מתחבר לבנק ולאשראי, זה לוקח בערך דקה…'; go('home');
+  try {
+    const r = await fetch(BRIDGE + '/api/scrape', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+    const d = await r.json(); if (!r.ok) throw new Error(d.error || 'שגיאה');
+    const bad = d.results.filter(x => !x.ok), added = d.results.reduce((a, x) => a + (x.added || 0), 0);
+    S.syncMsg = (added ? `נוספו ${added} תנועות חדשות` : 'אין תנועות חדשות') + (bad.length ? `. לא הצליח: ${bad.map(x => esc(x.label) + ' (' + esc(x.error) + ')').join(', ')}` : '');
+  } catch (e) { S.syncMsg = esc(e.message); }
+  S.syncing = false; await reloadAll();
+  setTimeout(() => { S.syncMsg = ''; if (S.view === 'home' && !$('#mbg')) render(); }, 9000);
 }
 
 // ---------- התחייבויות ----------
@@ -431,320 +434,154 @@ function remainingNow(r, onIso) {
   if (r.remaining == null) return null;
   const a = isoToDate(r.as_of), b = isoToDate(onIso || todayIso()); let n = 0;
   for (let d = new Date(a.getFullYear(), a.getMonth(), 1, 12); d <= b; d.setMonth(d.getMonth() + 1)) {
-    const last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
-    const pay = new Date(d.getFullYear(), d.getMonth(), Math.min(r.day || 1, last), 12);
+    const last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate(); const pay = new Date(d.getFullYear(), d.getMonth(), Math.min(r.day || 1, last), 12);
     if (pay > a && pay <= b) n++;
   }
   return Math.max(0, r.remaining - n);
 }
-function endLabel(r, rem) {
-  if (!rem) return 'הסתיים';
-  const t = new Date(); let d = new Date(t.getFullYear(), t.getMonth(), Math.min(r.day || 1, 28), 12);
-  if (d <= t) d.setMonth(d.getMonth() + 1);
-  d.setMonth(d.getMonth() + rem - 1);
-  const iso = dateToIso(d); return 'אחרון ב' + hMonth(iso) + ' ' + gem(hparts(iso).y);
-}
+function endLabel(r, rem) { if (!rem) return 'הסתיים'; const t = new Date(); let d = new Date(t.getFullYear(), t.getMonth(), Math.min(r.day || 1, 28), 12); if (d <= t) d.setMonth(d.getMonth() + 1); d.setMonth(d.getMonth() + rem - 1); const iso = dateToIso(d); return 'אחרון ב' + hMonth(iso) + ' ' + gem(hparts(iso).y); }
 function oblHTML() {
   const rec = (S.boot.recurring || []).filter(r => r.active !== 0);
-  const debts = rec.filter(r => r.kind === 'debt'), fixed = rec.filter(r => r.kind !== 'debt');
-  const debtRows = debts.map(r => { const rem = remainingNow(r); const bal = r.balance != null ? Math.max(0, r.balance - (r.remaining - rem) * r.amount) : rem * r.amount; return { r, rem, bal }; });
-  const mDebt = debtRows.filter(x => x.rem > 0).reduce((a, x) => a + x.r.amount, 0);
-  const mFixed = fixed.filter(r => remainingNow(r) !== 0).reduce((a, r) => a + r.amount, 0);
-  const balTot = debtRows.reduce((a, x) => a + (x.r.balance == null && x.r.name.includes('משכנתא') ? 0 : x.bal), 0);
-  return `<h2 class="sec">התחייבויות חודשיות</h2>
-  <div class="totals"><div>סה"כ בחודש<b class="num">₪${fmt0(mDebt + mFixed)}</b></div><div>חובות<b class="num">₪${fmt0(mDebt)}</b></div><div>קבועות<b class="num">₪${fmt0(mFixed)}</b></div><div>יתרת חובות<b class="num">₪${fmt0(balTot)}</b></div></div>
-  <div class="quick" style="margin-top:10px">
-    <button class="pill ink sm" onclick="openRec({kind:'debt'})">+ חוב / תשלומים</button>
-    <button class="pill ghost sm" onclick="openRec({kind:'fixed'})">+ הוצאה קבועה</button>
-    <button class="pill ghost sm" onclick="recApply()">רשום את כולם לחודש הנוכחי</button>
-  </div>
-  <h2 class="sec">חובות ותשלומים</h2>
-  ${debtRows.length ? debtRows.map(({ r, rem, bal }) => `<div class="ob" onclick="openRec(${r.id})">
-      <div><div class="n">${esc(r.name)}</div><div class="s">${rem ? `נשארו ${rem} תשלומים, ${endLabel(r, rem)}` : 'שולם במלואו'}${r.day ? `, נגבה ב-${r.day} לחודש` : ''}</div></div>
-      <div style="text-align:left"><div class="a num">₪${fmt(r.amount)}</div><div class="s">${r.balance == null && r.name.includes('משכנתא') ? '' : `יתרה ₪${fmt0(bal)}`}</div></div>
-      ${r.remaining && r.remaining > rem ? `<div class="prog"><span style="width:${(1 - rem / Math.max(r.remaining, 1)) * 100}%"></span></div>` : ''}
-    </div>`).join('') : '<div class="empty">אין חובות רשומים</div>'}
-  <h2 class="sec">הוצאות קבועות</h2>
-  ${fixed.length ? fixed.map(r => { const c = catById(r.category_id); const rem = remainingNow(r); return `<div class="ob" onclick="openRec(${r.id})">
-      <div><div class="n">${c?.icon || ''} ${esc(r.name)}</div><div class="s">${[c?.name, r.day ? `נגבה ב-${r.day} לחודש` : '', r.note, rem != null ? `נשארו ${rem}` : ''].filter(Boolean).map(esc).join(', ')}</div></div>
-      <div class="a num">₪${fmt(r.amount)}</div></div>`; }).join('') : '<div class="empty">אין הוצאות קבועות</div>'}
-  <p class="muted" style="margin-top:16px">"רשום את כולם" מוסיף כל התחייבות פעם אחת לחודש כהוצאה. אם רושמים ידנית או מהבנק, אין צורך.</p>`;
+  const debts = rec.filter(r => r.kind === 'debt').map(r => { const rem = remainingNow(r); const bal = r.balance != null ? Math.max(0, r.balance - (r.remaining - rem) * r.amount) : (rem || 0) * r.amount; return { r, rem, bal }; });
+  const fixed = rec.filter(r => r.kind !== 'debt');
+  const mD = debts.filter(x => x.rem > 0).reduce((a, x) => a + x.r.amount, 0), mF = fixed.reduce((a, r) => a + r.amount, 0);
+  const bT = debts.reduce((a, x) => a + (x.r.balance == null && x.r.name.includes('משכנתא') ? 0 : x.bal), 0);
+  return `<div class="panel"><div class="ph"><h2>התחייבויות חודשיות</h2></div>
+    <div class="totals"><div>בחודש<b class="num">₪${fmt0(mD + mF)}</b></div><div>חובות<b class="num">₪${fmt0(mD)}</b></div><div>קבועות<b class="num">₪${fmt0(mF)}</b></div><div>יתרת חובות<b class="num">₪${fmt0(bT)}</b></div></div>
+    <div style="display:flex;gap:8px;margin-top:12px"><button class="btn sm" onclick="openRec({kind:'debt'})">+ חוב</button><button class="btn sm soft" onclick="openRec({kind:'fixed'})">+ הוצאה קבועה</button></div></div>
+  <div class="panel"><div class="ph"><h2>חובות ותשלומים</h2></div>${debts.map(({ r, rem, bal }) => `<div class="ob" onclick="openRec(${r.id})">
+      <div><div class="n">${esc(r.name)}</div><div class="s">${rem ? `נשארו ${rem} תשלומים, ${endLabel(r, rem)}` : 'שולם במלואו'}, ב-${r.day} לחודש</div></div>
+      <div style="text-align:left"><div class="a num">₪${fmt(r.amount)}</div><div class="s">${r.balance == null && r.name.includes('משכנתא') ? '' : `יתרה ₪${fmt0(bal)}`}</div></div></div>`).join('') || '<div class="empty">אין חובות</div>'}</div>
+  <div class="panel"><div class="ph"><h2>הוצאות קבועות</h2></div>${fixed.map(r => { const c = catById(r.category_id); return `<div class="ob" onclick="openRec(${r.id})">
+      <div><div class="n">${c?.icon || ''} ${esc(r.name)}</div><div class="s">${[c?.name, `ב-${r.day} לחודש`, r.note].filter(Boolean).map(esc).join(', ')}</div></div><div class="a num">₪${fmt(r.amount)}</div></div>`; }).join('') || '<div class="empty">אין</div>'}</div>
+  <p class="muted">הרשימה הזו לתכנון. החיובים עצמם נרשמים לבד מהבנק ומהאשראי.</p>`;
 }
 let R = null;
 function openRec(arg) {
   const r = typeof arg === 'number' ? S.boot.recurring.find(x => x.id === arg) : null;
-  R = r ? { ...r, remaining: r.remaining == null ? '' : remainingNow(r), balance: r.balance == null ? '' : Math.max(0, r.balance - (r.remaining != null ? (r.remaining - remainingNow(r)) * r.amount : 0)) } : { id: null, kind: arg.kind, name: '', amount: '', day: 1, category_id: arg.kind === 'debt' ? cats('expense').find(c => c.name === 'החזר חובות')?.id : null, remaining: '', balance: '', payment_method: 'הוראת קבע', note: '' };
-  const opts = cats('expense').filter(c => c.active).map(c => `<option value="${c.id}" ${R.category_id === c.id ? 'selected' : ''}>${c.icon} ${esc(c.name)}</option>`).join('');
-  modal(`<div class="mtop ink"><div class="row1"><h3>${R.id ? 'עריכה' : R.kind === 'debt' ? 'חוב / תשלומים חדש' : 'הוצאה קבועה חדשה'}</h3><button class="x" onclick="closeModal()">×</button></div>
+  R = r ? { ...r, remaining: r.remaining == null ? '' : remainingNow(r), balance: r.balance == null ? '' : Math.max(0, r.balance - (r.remaining != null ? (r.remaining - remainingNow(r)) * r.amount : 0)) }
+    : { id: null, kind: arg.kind, name: '', amount: '', day: 1, category_id: arg.kind === 'debt' ? cats('expense').find(c => c.name === 'החזר חובות')?.id : null, remaining: '', balance: '', payment_method: 'הוראת קבע', note: '' };
+  modal(`<div class="mh"><div class="r1"><h3>${R.id ? 'עריכה' : R.kind === 'debt' ? 'חוב חדש' : 'הוצאה קבועה חדשה'}</h3><button class="x" onclick="closeModal()" aria-label="סגירה">×</button></div>
     <div class="seg"><button class="${R.kind === 'debt' ? 'on' : ''}" onclick="R.kind='debt';this.classList.add('on');this.nextElementSibling.classList.remove('on')">חוב / תשלומים</button><button class="${R.kind !== 'debt' ? 'on' : ''}" onclick="R.kind='fixed';this.classList.add('on');this.previousElementSibling.classList.remove('on')">הוצאה קבועה</button></div></div>
-    <div class="mbody">
-      <label class="f">שם</label><input id="rN" value="${esc(R.name)}">
-      <div style="display:flex;gap:10px"><div style="flex:1"><label class="f">סכום חודשי</label><input id="rA" type="number" inputmode="decimal" step="0.01" value="${esc(R.amount)}"></div>
-        <div style="flex:1"><label class="f">יום גבייה בחודש</label><input id="rD" type="number" min="1" max="31" value="${esc(R.day)}"></div></div>
-      <div style="display:flex;gap:10px"><div style="flex:1"><label class="f">תשלומים שנותרו (ריק = ללא סוף)</label><input id="rR" type="number" min="0" value="${esc(R.remaining)}"></div>
-        <div style="flex:1"><label class="f">יתרת חוב (אם שונה מסכום × תשלומים)</label><input id="rB" type="number" step="0.01" value="${esc(R.balance ?? '')}"></div></div>
-      <label class="f">קטגוריה</label><select id="rC"><option value="">ללא</option>${opts}</select>
-      <label class="f">אמצעי תשלום</label><select id="rP">${PAY_METHODS.map(p => `<option ${R.payment_method === p ? 'selected' : ''}>${p}</option>`).join('')}</select>
+    <div class="mbd"><label class="f">שם</label><input id="rN" value="${esc(R.name)}">
+      <div style="display:flex;gap:10px"><div style="flex:1"><label class="f">סכום חודשי</label><input id="rA" type="number" inputmode="decimal" step="0.01" value="${esc(R.amount)}"></div><div style="flex:1"><label class="f">יום בחודש</label><input id="rD" type="number" min="1" max="31" value="${esc(R.day)}"></div></div>
+      <div style="display:flex;gap:10px"><div style="flex:1"><label class="f">תשלומים שנותרו</label><input id="rR" type="number" min="0" value="${esc(R.remaining)}"></div><div style="flex:1"><label class="f">יתרת חוב</label><input id="rB" type="number" step="0.01" value="${esc(R.balance ?? '')}"></div></div>
+      <label class="f">קטגוריה</label><select id="rC"><option value="">ללא</option>${cats('expense').filter(c => c.active).map(c => `<option value="${c.id}" ${R.category_id === c.id ? 'selected' : ''}>${c.icon} ${esc(c.name)}</option>`).join('')}</select>
       <label class="f">הערה</label><input id="rT" value="${esc(R.note || '')}">
-      <div class="actions"><button class="pill ink" onclick="saveRec()">שמור</button>${R.id ? `<button class="pill danger" onclick="delRec()">מחק</button>` : ''}</div>
-    </div>`);
+      <div class="mfoot"><button class="btn" onclick="saveRec()">שמירה</button>${R.id ? `<button class="btn red" onclick="delRec()">מחיקה</button>` : ''}</div></div>`);
 }
 async function saveRec() {
-  const b = { kind: R.kind, name: $('#rN').value, amount: +$('#rA').value, day: +$('#rD').value || 1, remaining: $('#rR').value, balance: $('#rB').value,
-    category_id: +$('#rC').value || null, payment_method: $('#rP').value, note: $('#rT').value, as_of: todayIso(), active: 1 };
+  const b = { kind: R.kind, name: $('#rN').value, amount: +$('#rA').value, day: +$('#rD').value || 1, remaining: $('#rR').value, balance: $('#rB').value, category_id: +$('#rC').value || null, payment_method: R.payment_method || 'הוראת קבע', note: $('#rT').value, as_of: todayIso(), active: 1 };
   if (!b.name || !b.amount) return toast('צריך שם וסכום');
   try { if (R.id) await api('/api/recurring/' + R.id, { method: 'PUT', body: b }); else await api('/api/recurring', { method: 'POST', body: b }); closeModal(); await loadBoot(); render(); toast('נשמר'); } catch (e) { toast(e.message); }
 }
 async function delRec() { if (!confirm('למחוק?')) return; try { await api('/api/recurring/' + R.id, { method: 'DELETE' }); closeModal(); await loadBoot(); render(); } catch (e) { toast(e.message); } }
-async function recApply() { if (!confirm('לרשום את כל ההתחייבויות כהוצאות של החודש הנוכחי?')) return; try { const r = await api('/api/recurring/apply', { method: 'POST', body: { month: todayIso().slice(0, 7) } }); toast(r.added ? `נרשמו ${r.added} הוצאות` : 'כבר נרשמו לחודש הזה'); await reloadAll(); } catch (e) { toast(e.message); } }
-
-// ---------- מעשרות ----------
-function maaserHTML() {
-  const m = S.maaser || {}, s = sums(S.txs), pct = (+S.boot.settings.maaser_percent || 10) / 100;
-  const pays = S.txs.filter(t => t.type === 'maaser');
-  const byR = {}; pays.forEach(p => byR[p.description || 'ללא שם'] = (byR[p.description || 'ללא שם'] || 0) + p.amount);
-  const recips = Object.entries(byR).sort((a, b) => b[1] - a[1]);
-  const totalDue = (m.opening || 0) + (m.due || 0), frac = totalDue > 0 ? Math.min(1, (m.paid || 0) / totalDue) : 1;
-  const C = 2 * Math.PI * 62;
-  return `<h2 class="sec">מעשרות</h2>
-  <div class="coinwrap">
-    <svg class="coin" viewBox="0 0 150 150" role="img" aria-label="שולם ${Math.round(frac * 100)} אחוז">
-      <circle cx="75" cy="75" r="62" fill="#FFF3D6" stroke="#F3E2B5" stroke-width="14"/>
-      <circle cx="75" cy="75" r="62" fill="none" stroke="#F5A400" stroke-width="14" stroke-linecap="round" stroke-dasharray="${C * frac} ${C}" transform="rotate(-90 75 75)"/>
-      <text x="75" y="70" text-anchor="middle" font-size="13" fill="#8A5B00">נשאר לתת</text>
-      <text x="75" y="96" text-anchor="middle" class="big" font-size="${String(fmt0(m.balance)).length > 6 ? 22 : 27}" fill="#151A3D" direction="ltr">₪${fmt0(m.balance)}</text>
-    </svg>
-    <div style="flex:1;min-width:220px">
-      <div class="kv"><span>יתרה מלפני ${esc(hDate(m.since || todayIso()))} ${gem(hparts(m.since || todayIso()).y)}</span><b>${money(m.opening)}</b></div>
-      <div class="kv"><span>${m.percent}% מהכנסות מאז (${money0(m.liableIncome)})</span><b>${money(m.due)}</b></div>
-      <div class="kv"><span>ניתן מאז</span><b>${money(m.paid)}</b></div>
-    </div>
-  </div>
-  <button class="pill maa" style="margin-top:16px" onclick="openTx({type:'maaser'})">+ רישום מעשרות</button>
-  <h2 class="sec">שנת ${gem(S.hy)}</h2>
-  <div class="kv"><span>הכנסות חייבות במעשר</span><b>${money(s.liable)}</b></div>
-  <div class="kv"><span>מעשרות השנה</span><b>${money(s.liable * pct)}</b></div>
-  <div class="kv"><span>ניתן השנה</span><b>${money(s.maaser)}</b></div>
-  <h2 class="sec">למי נתתי</h2>
-  ${recips.length ? recips.map(([n, v]) => `<div class="kv"><span>${esc(n)}</span><b>${money(v)}</b></div>`).join('') : '<div class="empty">עדיין לא נרשמו מעשרות השנה</div>'}
-  <h2 class="sec">כל הרישומים</h2>${pays.map(txHTML).join('') || '<div class="empty">אין</div>'}`;
-}
-
-// ---------- בפועל: השוואה לבנק ולאשראי ----------
-function bankHTML() {
-  const vis = S.bank.filter(b => S.showHidden || b.status !== 'ignored');
-  // השוואה חודשית
-  const months = byMonth(S.txs.filter(t => t.type !== 'income').concat(S.bank.filter(b => b.amount < 0 && b.status !== 'ignored').map(b => ({ date: b.date, _b: b }))));
-  const rows = months.map(m => {
-    const rec = m.items.filter(x => !x._b).reduce((a, t) => a + t.amount, 0);
-    const bs = m.items.filter(x => x._b).map(x => x._b);
-    const cardDetail = bs.filter(isCardSrc).reduce((a, b) => a - b.amount, 0);
-    const bills = bs.filter(b => b.card).reduce((a, b) => a - b.amount, 0);
-    const bankOut = bs.filter(b => !b.card && !isCardSrc(b)).reduce((a, b) => a - b.amount, 0);
-    return { name: m.name, rec, act: bankOut + (cardDetail > 0 ? cardDetail : bills), viaCard: cardDetail > 0 ? 'פירוט אשראי' : bills ? 'סכום חיובי כרטיס' : '' };
-  }).filter(r => r.act > 0);
-  const max = Math.max(1, ...rows.flatMap(r => [r.rec, r.act]));
-  const list = vis.map(b => {
-    const st = b.status === 'ignored' ? `<span class="tag card">מוסתר</span> <button class="pill ghost sm" onclick="bankAct(${b.id},'unhide')">החזר</button>`
-      : b.card ? `<span class="tag card">חיוב כרטיס אשראי. הפירוט מגיע מחברת האשראי</span>`
-      : b.match ? `<span class="tag ok">✓ ${b.match.type === 'maaser' ? 'נרשם כמעשרות' : 'נרשם'}: ${esc(b.match.description || '')}</span>${b.tx_id ? '' : ''}`
-      : `<span class="tag no">לא נרשם</span> <button class="pill ink sm" onclick="fromBank(${b.id})">+ רשום</button> <button class="pill ghost sm" onclick="bankAct(${b.id},'hide')">הסתר</button>`;
-    return `<div class="bk-row ${b.card || b.status === 'ignored' ? 'dim' : ''}">
-      <div class="top"><span>${esc(bankName(b))}</span><span class="num" style="color:${b.amount < 0 ? 'var(--exp)' : 'var(--inc)'}">${b.amount < 0 ? '−' : '+'}₪${fmt(Math.abs(b.amount))}</span></div>
-      <div class="meta">${esc(hDate(b.date))} (${gDate(b.date)}), ${esc(b.description)}${b.memo ? ', ' + esc(b.memo) : ''}</div>
-      <div class="act">${st}</div></div>`;
-  }).join('');
-  return `<h2 class="sec">בפועל מול מה שרשמתי</h2>
-  <p class="muted" style="margin-top:-6px">נתוני הבנק והאשראי לא נספרים בהוצאות שלך. הם כאן רק כדי לבדוק שלא שכחת לרשום משהו.</p>
-  <button class="pill ink" onclick="bridgeUpdate()" ${S.syncing ? 'disabled' : ''}>${S.syncing ? 'מתחבר לבנק, זה לוקח בערך דקה…' : 'עדכן מהבנק ומהאשראי'}</button>
-  ${S.syncMsg ? `<div class="syncmsg">${S.syncMsg}</div>` : ''}
-  ${rows.length ? `<h2 class="sec">לפי חודשים <small>כהה = יצא בפועל, צבעוני = רשמתי</small></h2>${rows.map(r => {
-    const d = r.act - r.rec;
-    return `<div class="cmp"><div class="m">${esc(r.name)}</div>
-      <div class="ln" style="width:${r.act / max * 100}%;background:var(--ink)"></div><div class="v num">₪${fmt0(r.act)}</div>
-      <div class="ln" style="width:${r.rec / max * 100}%;background:var(--maa)"></div><div class="v num">₪${fmt0(r.rec)}</div>
-      <div class="gap ${Math.abs(d) < 1 ? 'ok-t' : d > 0 ? 'er-t' : ''}">${Math.abs(d) < 1 ? 'תואם' : d > 0 ? `יצא ₪${fmt0(d)} יותר ממה שרשמת` : `רשמת ₪${fmt0(-d)} יותר`}${r.viaCard ? ` (אשראי לפי ${r.viaCard})` : ''}</div></div>`; }).join('')}` : ''}
-  <h2 class="sec">תנועות <small>${S.unmatched || 0} לא נרשמו</small></h2>
-  <label class="check" style="margin-top:0"><input type="checkbox" ${S.showHidden ? 'checked' : ''} onchange="S.showHidden=this.checked;render()"> הצג מוסתרות</label>
-  ${list || '<div class="empty">אין עדיין נתונים מהבנק לשנה הזו. לחץ על "עדכן מהבנק ומהאשראי".</div>'}
-  <h2 class="sec">ייבוא קובץ</h2>
-  <p class="muted">קובץ JSON מכספיון או מ-israeli-bank-scrapers. תנועות שכבר יובאו לא ייכנסו שוב.</p>
-  <input type="file" accept=".json,application/json" onchange="bankFile(this)">`;
-}
-function fromBank(id) {
-  const b = S.bank.find(x => x.id === id); const text = bankName(b) + ' ' + b.description + ' ' + (b.memo || '');
-  const rule = (S.boot.rules || []).find(r => r.pattern === ruleKey(b.description + ' ' + (b.memo || '')));
-  const type = b.amount > 0 ? 'income' : rule?.type === 'maaser' || MAASER_RE.test(text) ? 'maaser' : 'expense';
-  openTx({ type, amount: Math.abs(b.amount), date: b.date, description: bankName(b), note: b.memo || '', bank_id: b.id,
-    category_id: type === 'maaser' ? null : (rule && rule.type === type ? rule.category_id : suggest(text, type)),
-    payment_method: isCardSrc(b) ? 'אשראי' : /העברה|הע\./.test(text) ? 'העברה' : '' });
-}
-async function bankAct(id, act) { try { await api(`/api/bank/${id}/${act}`, { method: 'POST' }); const b = S.bank.find(x => x.id === id); b.status = act === 'hide' ? 'ignored' : 'pending'; matchBank(); render(); } catch (e) { toast(e.message); } }
-async function bankFile(inp) {
-  const f = inp.files[0]; if (!f) return;
-  try { const r = await api('/api/bank/import', { method: 'POST', body: JSON.parse(await f.text()) }); toast(`נוספו ${r.added} תנועות (${r.duplicates} כבר היו)`); await loadYear(); render(); }
-  catch (e) { toast('שגיאה: ' + e.message); }
-}
-async function bridgeUpdate() {
-  if (S.syncing) return;
-  let st;
-  try { const ctl = new AbortController(); setTimeout(() => ctl.abort(), 2500); st = await (await fetch(BRIDGE + '/api/status', { signal: ctl.signal })).json(); }
-  catch (e) { S.syncMsg = '<span class="er-t">הגשר לא עונה.</span> העדכון עובד רק מהמחשב שהגשר מותקן עליו. אם הוא מותקן, הפעל את start-hidden.vbs. אם הדפדפן שאל על גישה לרשת המקומית, צריך לאשר.'; go('bank'); return; }
-  if (!st.accounts || !st.accounts.length) { S.syncMsg = `<span class="er-t">לא הוגדרו חשבונות בגשר.</span> פתח במחשב את <a href="${BRIDGE}" target="_blank">${BRIDGE}</a>`; go('bank'); return; }
-  S.syncing = true; S.syncMsg = ''; go('bank');
-  try {
-    const r = await fetch(BRIDGE + '/api/scrape', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
-    const d = await r.json(); if (!r.ok) throw new Error(d.error || 'שגיאה');
-    S.syncMsg = d.results.map(x => x.ok ? `<div class="ok-t">✓ ${esc(x.label)}: ${x.added} תנועות חדשות</div>` : `<div class="er-t">✗ ${esc(x.label)}: ${esc(x.error)}</div>`).join('');
-  } catch (e) { S.syncMsg = '<span class="er-t">' + esc(e.message) + '</span>'; }
-  S.syncing = false; await loadYear(); render();
-}
 
 // ---------- הגדרות ----------
 function settingsHTML() {
   const st = S.boot.settings;
-  const block = type => cats(type).filter(c => c.active).map(c => `<div class="ed">
-      <input class="ic" value="${esc(c.icon || '')}" onchange="catUpd(${c.id},{icon:this.value})" aria-label="אייקון">
-      <div><input value="${esc(c.name)}" onchange="catUpd(${c.id},{name:this.value})">
-        <div style="display:flex;gap:6px;margin-top:5px">
-          ${type === 'expense' ? `<select style="padding:6px;flex:none;width:auto" onchange="catUpd(${c.id},{grp:this.value})">${GROUPS.map(([g]) => `<option ${c.grp === g ? 'selected' : ''}>${g}</option>`).join('')}</select>`
-            : `<label class="check" style="margin:0;font-size:13px;white-space:nowrap"><input type="checkbox" ${c.maaser_liable ? 'checked' : ''} onchange="catUpd(${c.id},{maaser_liable:this.checked?1:0})">חייב במעשר</label>`}
-          <input style="padding:6px 9px;font-size:13px" placeholder="מילים להצעה אוטומטית, מופרדות בפסיק" value="${esc(c.keywords || '')}" onchange="catUpd(${c.id},{keywords:this.value})"></div></div>
-      <button class="pill danger sm" onclick="catDel(${c.id})">מחק</button></div>`).join('');
-  return `<h2 class="sec">הגדרות</h2>
-  <h2 class="sec">קטגוריות הוצאות</h2>${block('expense')}
-  <div style="display:flex;gap:8px;margin-top:10px"><input id="newExp" placeholder="קטגוריה חדשה"><button class="pill ink sm" onclick="catAdd('expense','newExp')">הוסף</button></div>
-  <h2 class="sec">קטגוריות הכנסות</h2>${block('income')}
-  <div style="display:flex;gap:8px;margin-top:10px"><input id="newInc" placeholder="קטגוריה חדשה"><button class="pill ink sm" onclick="catAdd('income','newInc')">הוסף</button></div>
-  <h2 class="sec">מעשרות</h2>
-  <label class="f">אחוז</label><input id="sPct" type="number" step="0.5" value="${esc(st.maaser_percent)}">
-  <label class="f">יתרת מעשרות מלפני תאריך הפתיחה (מינוס אם נתת יותר)</label><input id="sOpen" type="number" step="0.01" value="${esc(st.maaser_opening)}">
-  <label class="f">תאריך פתיחה: מעשר מחושב על הכנסות מהתאריך הזה</label><input id="sDate" type="date" value="${esc(st.maaser_opening_date)}">
-  <button class="pill ink" style="margin-top:12px" onclick="saveSettings()">שמור</button>
-  <h2 class="sec">גיבוי וייבוא</h2>
-  <button class="pill ghost" onclick="exportAll()">הורד גיבוי</button>
-  <label class="f">ייבוא מקובץ (גיבוי, קובץ פתיחה, התחייבויות)</label><input type="file" accept=".json" onchange="importFile(this)">
-  <p class="muted">ייבוא מוסיף רישומים. אל תייבא את אותו קובץ פעמיים.</p>
-  <button class="pill danger" style="margin-top:20px" onclick="logout()">יציאה</button>`;
+  const block = type => cats(type).filter(c => c.active).map(c => `<div class="ed"><input class="ic" value="${esc(c.icon || '')}" onchange="catUpd(${c.id},{icon:this.value})" aria-label="אייקון">
+      <div><input value="${esc(c.name)}" onchange="catUpd(${c.id},{name:this.value})"><div style="display:flex;gap:6px;margin-top:5px">
+        ${type === 'expense' ? `<select style="padding:6px;width:auto" onchange="catUpd(${c.id},{grp:this.value})">${GROUPS.map(g => `<option ${c.grp === g ? 'selected' : ''}>${g}</option>`).join('')}</select>`
+          : `<label class="check" style="margin:0;font-size:13px;white-space:nowrap"><input type="checkbox" ${c.maaser_liable ? 'checked' : ''} onchange="catUpd(${c.id},{maaser_liable:this.checked?1:0})">חייב במעשר</label>`}
+        <input style="padding:6px 9px;font-size:13px" placeholder="מילים לזיהוי אוטומטי, בפסיקים" value="${esc(c.keywords || '')}" onchange="catUpd(${c.id},{keywords:this.value})"></div></div>
+      <button class="btn sm red" onclick="catDel(${c.id})">מחק</button></div>`).join('');
+  return `<div class="panel"><div class="ph"><h2>מעשרות</h2></div>
+    <label class="f">אחוז</label><input id="sPct" type="number" step="0.5" value="${esc(st.maaser_percent)}">
+    <label class="f">חוב מעשרות מלפני תאריך הפתיחה (מינוס אם נתת יותר)</label><input id="sOpen" type="number" step="0.01" value="${esc(st.maaser_opening)}">
+    <label class="f">תאריך פתיחה למעשרות</label><input id="sDate" type="date" value="${esc(st.maaser_opening_date)}">
+    <label class="f">תנועות מהבנק ומהאשראי נכנסות מהתאריך</label><input id="sBank" type="date" value="${esc(st.bank_start || '2026-09-12')}">
+    <button class="btn" style="margin-top:12px" onclick="saveSettings()">שמירה</button></div>
+  <div class="panel"><div class="ph"><h2>קטגוריות הוצאות</h2></div>${block('expense')}<div style="display:flex;gap:8px;margin-top:10px"><input id="newExp" placeholder="קטגוריה חדשה"><button class="btn sm" onclick="catAdd('expense','newExp')">הוספה</button></div></div>
+  <div class="panel"><div class="ph"><h2>קטגוריות הכנסות</h2></div>${block('income')}<div style="display:flex;gap:8px;margin-top:10px"><input id="newInc" placeholder="קטגוריה חדשה"><button class="btn sm" onclick="catAdd('income','newInc')">הוספה</button></div></div>
+  <div class="panel"><div class="ph"><h2>גיבוי וייבוא</h2></div><button class="btn soft" onclick="exportAll()">הורדת גיבוי</button>
+    <label class="f">ייבוא מקובץ</label><input type="file" accept=".json" onchange="importFile(this)"><p class="muted">רישום שכבר מגיע מהבנק או מהאשראי לא ייכנס פעמיים.</p></div>
+  <button class="btn red" style="width:100%" onclick="logout()">יציאה</button>`;
 }
 async function catAdd(type, inp) { const n = $('#' + inp).value.trim(); if (!n) return; try { await api('/api/categories', { method: 'POST', body: { type, name: n } }); await loadBoot(); render(); } catch (e) { toast(e.message); } }
 async function catUpd(id, b) { try { await api('/api/categories/' + id, { method: 'PUT', body: b }); await loadBoot(); toast('נשמר'); } catch (e) { toast(e.message); } }
-async function catDel(id) { if (!confirm('למחוק את הקטגוריה? אם יש בה רישומים היא רק תוסתר.')) return; try { await api('/api/categories/' + id, { method: 'DELETE' }); await loadBoot(); render(); } catch (e) { toast(e.message); } }
-async function saveSettings() { try { await api('/api/settings', { method: 'PUT', body: { maaser_percent: $('#sPct').value, maaser_opening: $('#sOpen').value, maaser_opening_date: $('#sDate').value } }); await reloadAll(); toast('נשמר'); } catch (e) { toast(e.message); } }
+async function catDel(id) { if (!confirm('למחוק את הקטגוריה?')) return; try { await api('/api/categories/' + id, { method: 'DELETE' }); await loadBoot(); render(); } catch (e) { toast(e.message); } }
+async function saveSettings() { try { await api('/api/settings', { method: 'PUT', body: { maaser_percent: $('#sPct').value, maaser_opening: $('#sOpen').value, maaser_opening_date: $('#sDate').value, bank_start: $('#sBank').value } }); await reloadAll(); toast('נשמר'); } catch (e) { toast(e.message); } }
 async function exportAll() { try { const d = await api('/api/export'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(d, null, 1)], { type: 'application/json' })); a.download = 'kaspei-bayit-' + todayIso() + '.json'; a.click(); } catch (e) { toast(e.message); } }
-async function importFile(inp) { const f = inp.files[0]; if (!f) return; if (!confirm('לייבא את ' + f.name + '?')) return; try { const r = await api('/api/import', { method: 'POST', body: JSON.parse(await f.text()) }); toast(`יובאו ${r.transactions} רישומים ו-${r.recurring} התחייבויות`); await reloadAll(); } catch (e) { toast('שגיאה: ' + e.message); } inp.value = ''; }
+async function importFile(inp) { const f = inp.files[0]; if (!f) return; if (!confirm('לייבא את ' + f.name + '?')) return; try { const r = await api('/api/import', { method: 'POST', body: JSON.parse(await f.text()) }); toast(`יובאו ${r.transactions} רישומים${r.merged ? `, ${r.merged} מהם כבר הגיעו מהבנק וקושרו` : ''}`); await reloadAll(); } catch (e) { toast('שגיאה: ' + e.message); } inp.value = ''; }
 function logout() { S.token = null; lsSet('kb_token', null); S.boot = null; render(); }
 
 // ---------- חלון ----------
-function modal(html) {
-  let bg = $('#mbg'); if (!bg) { bg = document.createElement('div'); bg.id = 'mbg'; bg.className = 'mbg'; bg.onclick = e => { if (e.target === bg) closeModal(); }; document.body.appendChild(bg); }
-  bg.innerHTML = `<div class="modal" role="dialog">${html}</div>`;
-}
+function modal(html) { let bg = $('#mbg'); if (!bg) { bg = document.createElement('div'); bg.id = 'mbg'; bg.className = 'mbg'; bg.onclick = e => { if (e.target === bg) closeModal(); }; document.body.appendChild(bg); } bg.innerHTML = `<div class="modal" role="dialog">${html}</div>`; }
 function closeModal() { $('#mbg')?.remove(); F = null; R = null; }
 
-// ---------- טופס רישום ----------
+// ---------- טופס ----------
 let F = null;
 function openTx(arg) {
   const t = typeof arg === 'number' ? S.txs.find(x => x.id === arg) : null;
   F = t ? { ...t, receipt: null, removeReceipt: false, catTouched: true }
     : { id: null, date: todayIso(), amount: '', category_id: null, description: '', payment_method: '', note: '', maaser_liable: 1, has_receipt: 0, receipt: null, catTouched: false, ...arg };
-  if (arg.category_id) F.catTouched = true;
-  if (F.type === 'income' && F.category_id && !F.id) F.maaser_liable = catById(F.category_id)?.maaser_liable ?? 1;
   drawForm();
 }
 function catChips() {
   if (F.type === 'maaser') return '';
   const list = cats(F.type).filter(c => c.active || c.id === F.category_id);
-  const chip = c => `<button class="chip ${F.category_id === c.id ? 'on' : ''}" style="--c:${c.color || 'var(--ink)'}" onclick="pickCat(${c.id})">${c.icon || ''} ${esc(c.name)}</button>`;
+  const chip = c => `<button class="chip ${F.category_id === c.id ? 'on' : ''}" onclick="pickCat(${c.id})">${c.icon || ''} ${esc(c.name)}</button>`;
   if (F.type === 'income') return `<div class="chips">${list.map(chip).join('')}</div>`;
-  return GROUPS.map(([g]) => { const l = list.filter(c => (c.grp || 'שוטפות') === g); return l.length ? `<div class="cgrp">${g}</div><div class="chips">${l.map(chip).join('')}</div>` : ''; }).join('');
+  return GROUPS.map(g => { const l = list.filter(c => (c.grp || 'שוטפות') === g); return l.length ? `<div class="cg">${g}</div><div class="chips">${l.map(chip).join('')}</div>` : ''; }).join('');
 }
 function drawForm() {
+  const fromBank = F.id && F.source === 'bank';
   const seen = new Set();
   const descs = (S.boot.descriptions || []).filter(d => d.type === F.type && !seen.has(d.description) && seen.add(d.description)).map(d => `<option value="${esc(d.description)}">`).join('');
-  modal(`<div class="mtop ${F.type}">
-      <div class="row1"><h3>${F.id ? 'עריכה' : F.bank_id ? 'רישום מתנועת בנק' : 'רישום חדש'}</h3><button class="x" onclick="closeModal()" aria-label="סגור">×</button></div>
+  modal(`<div class="mh"><div class="r1"><h3>${F.id ? (fromBank ? 'תנועה מהבנק / האשראי' : 'עריכה') : 'רישום חדש'}</h3><button class="x" onclick="closeModal()" aria-label="סגירה">×</button></div>
       <div class="seg">${['expense', 'income', 'maaser'].map(t => `<button class="${F.type === t ? 'on' : ''}" onclick="setType('${t}')">${TYPE_LABEL[t]}</button>`).join('')}</div>
-      <input class="amt" id="fAmount" type="number" inputmode="decimal" step="0.01" placeholder="₪0" value="${esc(F.amount)}" oninput="F.amount=this.value" style="width:100%">
-    </div>
-    <div class="mbody">
-      <label class="f">${F.type === 'maaser' ? 'למי' : F.type === 'income' ? 'ממי / ממה' : 'על מה'}</label>
-      <input id="fDesc" list="dl" value="${esc(F.description)}" oninput="descInput(this.value)" autocomplete="off" placeholder="${F.type === 'maaser' ? 'שם המוסד או האדם' : F.type === 'income' ? 'למשל משכורת' : 'למשל שופרסל'}"><datalist id="dl">${descs}</datalist>
-      <div id="catBox">${F.type !== 'maaser' ? `<div class="sugg" id="sugg">${!F.catTouched && F.category_id ? 'הוצע אוטומטית לפי התיאור' : ''}</div>${catChips()}` : ''}</div>
+      <input class="amt" id="fAmount" type="number" inputmode="decimal" step="0.01" placeholder="₪0" value="${esc(F.amount)}" oninput="F.amount=this.value" style="width:100%"></div>
+    <div class="mbd">
+      ${fromBank ? `<div class="note">הגיע אוטומטית. אם תשנה קטגוריה, התוכנה תזכור ותעדכן גם תנועות דומות.</div>` : ''}
+      <label class="f">${F.type === 'maaser' ? 'למי' : F.type === 'income' ? 'ממי' : 'על מה'}</label>
+      <input id="fDesc" list="dl" value="${esc(F.description)}" oninput="descInput(this.value)" autocomplete="off"><datalist id="dl">${descs}</datalist>
+      <div id="catBox">${F.type !== 'maaser' ? `<div class="sugg" id="sugg"></div>${catChips()}` : ''}</div>
       <label class="f">תאריך</label><input type="date" value="${esc(F.date)}" onchange="F.date=this.value;$('#fHeb').textContent=hDate(this.value)+' '+gem(hparts(this.value).y)">
       <div class="heb" id="fHeb">${esc(hDate(F.date))} ${gem(hparts(F.date).y)}</div>
       <label class="f">אמצעי תשלום</label><div class="chips">${PAY_METHODS.map(p => `<button class="chip ${F.payment_method === p ? 'on' : ''}" onclick="setPay(this,'${p.replace(/'/g, "\\'")}')">${esc(p)}</button>`).join('')}</div>
       ${F.type === 'income' ? `<label class="check"><input type="checkbox" id="fLiable" ${F.maaser_liable ? 'checked' : ''} onchange="F.maaser_liable=this.checked?1:0"> חייב במעשר</label>` : ''}
       <label class="f">הערה</label><textarea rows="2" oninput="F.note=this.value">${esc(F.note)}</textarea>
       <label class="f">קבלה</label><div class="rbox" id="rbox">${receiptBox()}</div>
-      <div class="actions"><button class="pill ${F.type === 'expense' ? 'exp' : F.type === 'income' ? 'inc' : 'maa'}" id="fSave" onclick="saveTx()">שמור</button>
-        ${F.id ? `<button class="pill danger" onclick="delTx()">מחק</button>` : ''}</div>
+      <div class="mfoot"><button class="btn ${F.type === 'maaser' ? 'maa' : ''}" id="fSave" onclick="saveTx()">שמירה</button>${F.id ? `<button class="btn red" onclick="delTx()">${fromBank ? 'לא לספור' : 'מחיקה'}</button>` : ''}</div>
     </div>`);
   if (!F.id && !F.amount) setTimeout(() => $('#fAmount')?.focus(), 60);
 }
 function keep() { F.amount = $('#fAmount')?.value ?? F.amount; F.description = $('#fDesc')?.value ?? F.description; }
-function setType(t) { keep(); if (t === F.type) return; F.type = t; if (!F.catTouched || t === 'maaser') { F.category_id = t === 'maaser' ? null : suggest(F.description, t); F.catTouched = false; } else F.category_id = null; drawForm(); }
-function pickCat(id) { F.category_id = id; F.catTouched = true; if (F.type === 'income' && !F.id) { F.maaser_liable = catById(id)?.maaser_liable ?? 1; const l = $('#fLiable'); if (l) l.checked = !!F.maaser_liable; } redrawCats(); $('#sugg').textContent = ''; }
-function redrawCats() { const box = $('#catBox'); if (!box) return; const sg = $('#sugg')?.outerHTML || '<div class="sugg" id="sugg"></div>'; box.innerHTML = sg + catChips(); }
-function descInput(v) {
-  F.description = v;
-  if (F.catTouched || F.type === 'maaser') return;
-  const s = suggest(v, F.type);
-  if (s !== F.category_id) { F.category_id = s; redrawCats(); $('#sugg').textContent = s ? 'הוצע אוטומטית לפי התיאור' : ''; }
-}
+function setType(t) { keep(); if (t === F.type) return; F.type = t; F.category_id = t === 'maaser' ? null : suggest(F.description, t); if (!F.id) F.catTouched = false; drawForm(); }
+function pickCat(id) { F.category_id = id; F.catTouched = true; if (F.type === 'income' && !F.id) { F.maaser_liable = catById(id)?.maaser_liable ?? 1; const l = $('#fLiable'); if (l) l.checked = !!F.maaser_liable; } redrawCats(); }
+function redrawCats() { const box = $('#catBox'); if (box) box.innerHTML = `<div class="sugg" id="sugg"></div>` + catChips(); }
+function descInput(v) { F.description = v; if (F.catTouched || F.type === 'maaser') return; const s = suggest(v, F.type); if (s !== F.category_id) { F.category_id = s; redrawCats(); $('#sugg').textContent = s ? 'הוצע לפי השם' : ''; } }
 function setPay(el, p) { F.payment_method = F.payment_method === p ? '' : p; el.parentNode.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c === el && !!F.payment_method)); }
 function receiptBox() {
-  if (F.receipt) return `${F.receipt.mime.startsWith('image/') ? `<img src="data:${F.receipt.mime};base64,${F.receipt.data}" alt="">` : `<span>📄 ${esc(F.receipt.name)}</span>`}<button class="pill danger sm" onclick="F.receipt=null;$('#rbox').innerHTML=receiptBox()">הסר</button>`;
-  if (F.has_receipt && !F.removeReceipt) return `<button class="pill ghost sm" onclick="viewReceipt(${F.id})">📎 הצג קבלה</button><button class="pill danger sm" onclick="F.removeReceipt=true;$('#rbox').innerHTML=receiptBox()">מחק קבלה</button>${pickers()}`;
+  if (F.receipt) return `${F.receipt.mime.startsWith('image/') ? `<img src="data:${F.receipt.mime};base64,${F.receipt.data}" alt="">` : `<span>📄 ${esc(F.receipt.name)}</span>`}<button class="btn sm red" onclick="F.receipt=null;$('#rbox').innerHTML=receiptBox()">הסרה</button>`;
+  if (F.has_receipt && !F.removeReceipt) return `<button class="btn sm soft" onclick="viewReceipt(${F.id})">📎 הצגת הקבלה</button><button class="btn sm red" onclick="F.removeReceipt=true;$('#rbox').innerHTML=receiptBox()">מחיקת קבלה</button>${pickers()}`;
   return pickers();
 }
-function pickers() {
-  return `<label class="pill ghost sm">📷 צלם<input type="file" accept="image/*" capture="environment" class="hidden" onchange="pickReceipt(this)"></label>
-          <label class="pill ghost sm">📁 קובץ<input type="file" accept="image/*,application/pdf" class="hidden" onchange="pickReceipt(this)"></label>`;
-}
-async function pickReceipt(inp) {
-  const f = inp.files[0]; if (!f) return;
-  try {
-    if (f.type.startsWith('image/')) F.receipt = await compressImage(f);
-    else { if (f.size > 4.4e6) return toast('ה-PDF גדול מ-4MB'); F.receipt = { mime: f.type || 'application/pdf', name: f.name, data: await b64(f) }; }
-    $('#rbox').innerHTML = receiptBox();
-  } catch (e) { toast('לא הצלחתי לקרוא את הקובץ'); }
-}
+function pickers() { return `<label class="btn sm soft">📷 צילום<input type="file" accept="image/*" capture="environment" class="hidden" onchange="pickReceipt(this)"></label><label class="btn sm soft">📁 קובץ<input type="file" accept="image/*,application/pdf" class="hidden" onchange="pickReceipt(this)"></label>`; }
+async function pickReceipt(inp) { const f = inp.files[0]; if (!f) return; try { if (f.type.startsWith('image/')) F.receipt = await compressImage(f); else { if (f.size > 4.4e6) return toast('ה-PDF גדול מ-4MB'); F.receipt = { mime: f.type || 'application/pdf', name: f.name, data: await b64(f) }; } $('#rbox').innerHTML = receiptBox(); } catch (e) { toast('לא הצלחתי לקרוא את הקובץ'); } }
 function b64(blob) { return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1]); r.onerror = rej; r.readAsDataURL(blob); }); }
-async function compressImage(file) {
-  const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = URL.createObjectURL(file); });
-  const sc = Math.min(1, 1600 / Math.max(img.width, img.height));
-  const c = document.createElement('canvas'); c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc);
-  c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-  const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.72));
-  return { mime: 'image/jpeg', name: file.name.replace(/\.\w+$/, '') + '.jpg', data: await b64(blob) };
-}
+async function compressImage(file) { const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = URL.createObjectURL(file); }); const sc = Math.min(1, 1600 / Math.max(img.width, img.height)); const c = document.createElement('canvas'); c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.72)); return { mime: 'image/jpeg', name: file.name.replace(/\.\w+$/, '') + '.jpg', data: await b64(blob) }; }
 async function saveTx() {
   keep();
   if (!(+F.amount > 0)) return toast('חסר סכום');
   if (F.type !== 'maaser' && !F.category_id) return toast('בחר קטגוריה');
   const btn = $('#fSave'); btn.disabled = true; btn.textContent = 'שומר…';
-  const body = { type: F.type, date: F.date, amount: +F.amount, category_id: F.type === 'maaser' ? null : F.category_id, description: F.description, payment_method: F.payment_method, note: F.note, maaser_liable: F.maaser_liable, bank_id: F.bank_id || undefined };
+  const body = { type: F.type, date: F.date, amount: +F.amount, category_id: F.type === 'maaser' ? null : F.category_id, description: F.description, payment_method: F.payment_method, note: F.note, maaser_liable: F.maaser_liable };
   try {
-    let id = F.id;
-    if (id) await api('/api/tx/' + id, { method: 'PUT', body }); else id = (await api('/api/tx', { method: 'POST', body })).id;
-    if (F.receipt) await api('/api/receipt/' + id, { method: 'POST', body: F.receipt });
-    else if (F.removeReceipt) await api('/api/receipt/' + id, { method: 'DELETE' });
-    closeModal(); toast('נשמר'); await reloadAll();
-  } catch (e) { toast(e.message); btn.disabled = false; btn.textContent = 'שמור'; }
+    let id = F.id, msg = 'נשמר';
+    if (id) { const r = await api('/api/tx/' + id, { method: 'PUT', body }); if (r.similar) msg = `נשמר, ועודכנו עוד ${r.similar} תנועות דומות`; }
+    else { const r = await api('/api/tx', { method: 'POST', body }); id = r.id; if (r.merged === 'bank') msg = 'זה כבר הגיע מהבנק או מהאשראי. נשארו נתוני הבנק עם הקטגוריה שבחרת'; else if (r.merged === 'manual') msg = 'נשמר וקושר לתנועה בבנק'; }
+    if (F.receipt) await api('/api/receipt/' + id, { method: 'POST', body: F.receipt }); else if (F.removeReceipt) await api('/api/receipt/' + id, { method: 'DELETE' });
+    closeModal(); toast(msg); await reloadAll();
+  } catch (e) { toast(e.message); btn.disabled = false; btn.textContent = 'שמירה'; }
 }
-async function delTx() { if (!confirm('למחוק את הרישום?')) return; try { await api('/api/tx/' + F.id, { method: 'DELETE' }); closeModal(); toast('נמחק'); await reloadAll(); } catch (e) { toast(e.message); } }
+async function delTx() { const fb = F.source === 'bank'; if (!confirm(fb ? 'לא לספור את התנועה הזו? אפשר להחזיר אותה במסך הבדיקה.' : 'למחוק את הרישום?')) return; try { await api('/api/tx/' + F.id, { method: 'DELETE' }); closeModal(); toast(fb ? 'התנועה לא תיספר' : 'נמחק'); await reloadAll(); } catch (e) { toast(e.message); } }
 async function viewReceipt(id) {
-  try {
-    toast('טוען קבלה…');
-    const r = await api('/api/receipt/' + id);
-    const bin = atob(r.data), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+  try { toast('טוען קבלה…'); const r = await api('/api/receipt/' + id); const bin = atob(r.data), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
     const url = URL.createObjectURL(new Blob([u], { type: r.mime }));
-    if (r.mime.startsWith('image/')) {
-      const v = document.createElement('div'); v.className = 'mbg'; v.style.zIndex = 30; v.onclick = () => v.remove();
-      v.innerHTML = `<div class="modal viewer" style="padding:16px"><img src="${url}" alt="קבלה"><a class="pill ghost sm" style="margin-top:10px;text-decoration:none" href="${url}" download="${esc(r.name || 'receipt.jpg')}">הורדה</a></div>`;
-      document.body.appendChild(v);
-    } else window.open(url, '_blank');
+    if (r.mime.startsWith('image/')) { const v = document.createElement('div'); v.className = 'mbg'; v.style.zIndex = 30; v.onclick = () => v.remove(); v.innerHTML = `<div class="modal viewer" style="padding:16px"><img src="${url}" alt="קבלה"><a class="btn sm soft" style="display:inline-block;margin-top:10px;text-decoration:none" href="${url}" download="${esc(r.name || 'receipt.jpg')}">הורדה</a></div>`; document.body.appendChild(v); }
+    else window.open(url, '_blank');
   } catch (e) { toast(e.message); }
 }
 
