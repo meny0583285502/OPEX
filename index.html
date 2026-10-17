@@ -300,11 +300,10 @@ function homeHTML() {
     <button class="act maa" onclick="openTx({type:'maaser'})"><span>🪙</span>מעשרות</button>
     <button class="act oth" onclick="openTx({type:'expense'})"><span>＋</span>רישום אחר</button>
   </div>
-  ${crs.length ? `<div class="panel"><div class="ph"><h2>לאן הלך הכסף ב${esc(S.month)}</h2></div>${catRows(crs, s.expense, S.month)}</div>` : ''}
   <div class="panel"><div class="ph"><h2>תנועות ב${esc(S.month)}</h2><button class="l" onclick="S.filter={type:'',cat:'',month:'${S.month}',q:''};go('list')">חיפוש</button></div>
     ${statement(list.filter(t => !pendingInfo(t))) || `<div class="empty">אין תנועות בחודש הזה. לחץ על העדכון למעלה כדי למשוך מהבנק ומהאשראי.</div>`}</div>
   ${pendingHTML(list)}
-  ${monthDataHTML(list)}`;
+  ${monthDataHTML(list, crs)}`;
 }
 // עסקת אשראי שעוד לא ירדה מהחשבון: מתי ומאיזה כרטיס
 function pendingInfo(t) {
@@ -323,7 +322,7 @@ function pendingHTML(list) {
     ${keys.map(k => { const g = groups[k]; const sum = g.items.reduce((a, t) => a + (t.type === 'income' ? -t.amount : t.amount), 0);
       return `<div class="pend-h"><div>יירד ב-${gDate(g.date)} (${hDate(g.date)})<br><span>${esc(g.card)}, ${g.items.length} עסקאות</span></div><div class="num">₪${fmt(sum)}</div></div>${g.items.map(rowHTML).join('')}`; }).join('')}</div>`;
 }
-function monthDataHTML(list) {
+function monthDataHTML(list, crs) {
   const s = sums(list);
   if (!list.length) return '';
   const byG = {}, byP = {};
@@ -341,7 +340,8 @@ function monthDataHTML(list) {
     ${GROUPS.filter(g => byG[g]).map(g => `<div class="kv"><span><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${GCOL[g]};margin-inline-end:6px"></span>הוצאות ${g}</span><b>${M(byG[g])}</b></div>`).join('')}
     ${Object.entries(byP).sort((a, b) => b[1] - a[1]).map(([p, v]) => `<div class="kv"><span>שולם ב${esc(p === 'בנק' ? 'עו"ש' : p)}</span><b>${M(v)}</b></div>`).join('')}
     <div class="kv"><span>ממוצע הוצאה ליום</span><b>${M0(s.expense / span)}</b></div>
-    ${cmp}</div>`;
+    ${cmp}
+    ${crs && crs.length ? `<h2 style="font-size:16px;margin:16px 0 4px">לאן הלך הכסף</h2>${catRows(crs, s.expense, S.month)}` : ''}</div>`;
 }
 function catRows(crs, total, month) {
   const max = crs[0][1] || 1;
