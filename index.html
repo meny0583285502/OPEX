@@ -218,6 +218,7 @@ async function loadYear() {
   const [t, m, bk] = await Promise.all([api(`/api/tx?from=${a}&to=${b}`), api('/api/maaser'), api(`/api/bank?from=${a}&to=${b}`)]);
   S.txs = t.items; S.maaser = m; S.bank = bk.items;
   try { S.flagged = (await api('/api/tx?flagged=1')).items; } catch { S.flagged = S.txs.filter(x => x.flag); }
+  try { S.ledger = (await api('/api/ledger')).items; } catch { S.ledger = []; }
   BANK_BY_ID = {}; S.bank.forEach(b => BANK_BY_ID[b.id] = b);
 }
 let BANK_BY_ID = {};
@@ -260,7 +261,7 @@ function render() {
   if (!S.boot) { root.innerHTML = '<div class="login"><h1>כספי הבית</h1><p class="muted">טוען…</p></div>'; return; }
   const ms = yearMonths(S.hy);
   if (!S.month || !ms.includes(S.month)) { const cur = hMonth(todayIso()); S.month = ms.includes(cur) && hparts(todayIso()).y === S.hy ? cur : ms[0]; }
-  const views = { home: homeHTML, month: monthViewHTML, income: incomeViewHTML, reports: reportsHTML, list: listHTML, maaser: maaserHTML, check: checkHTML, obl: oblHTML, settings: settingsHTML };
+  const views = { home: homeHTML, month: monthViewHTML, income: incomeViewHTML, reports: reportsHTML, list: listHTML, maaser: maaserHTML, check: checkHTML, obl: oblHTML, ledger: ledgerHTML, settings: settingsHTML };
   const v = views[S.view] ? S.view : 'home';
   root.innerHTML = `<div class="wrap">${heroHTML(v === 'home')}${views[v]()}</div>
   <nav class="bn"><div class="in">
@@ -271,6 +272,7 @@ function render() {
     ${nb('maaser', 'מעשרות', '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v9M9 10h6"/>')}
     ${nb('check', 'בדיקה', '<path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/>', checkIssues())}
     ${nb('obl', 'התחייבויות', '<rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>')}
+    ${nb('ledger', 'חובות והפקדות', '<path d="M4 7h16v12H4zM4 7l2-3h12l2 3M9 12h6"/>')}
   </div></nav>`;
   const on = document.querySelector('.mt.on'); if (on) on.scrollIntoView({ inline: 'center', block: 'nearest' });
 }
@@ -323,7 +325,7 @@ function incomeViewHTML() {
   <button class="btn" style="width:100%;margin-bottom:12px;background:var(--pos)" onclick="openTx({type:'income'})">+ רישום הכנסה</button>
   ${safe(() => monthIncomeHTML(inMonth(S.txs, S.month)))}${safe(() => incomesPanel())}`;
 }
-const APP_VERSION = '17.10.26-ו';
+const APP_VERSION = '25.10.26-א';
 function safe(fn) { try { return fn(); } catch (e) { console.error(e); return `<div class="panel"><div class="muted">שגיאה בהצגת החלק הזה: ${esc(e.message)}</div></div>`; } }
 function monthIncomeHTML(list) {
   const inc = list.filter(t => t.type === 'income' && !t.flag).sort((a, b) => a.date.localeCompare(b.date));
@@ -599,7 +601,7 @@ function oblHTML() {
       <div style="text-align:left"><div class="a num">₪${fmt(r.amount)}</div><div class="s">${r.balance == null && r.name.includes('משכנתא') ? '' : `יתרה ₪${fmt0(bal)}`}</div></div></div>`).join('') || '<div class="empty">אין חובות</div>'}</div>
   <div class="panel"><div class="ph"><h2>הוצאות קבועות</h2></div>${fixed.map(r => { const c = catById(r.category_id); return `<div class="ob" onclick="openRec(${r.id})">
       <div><div class="n">${c?.icon || ''} ${esc(r.name)}</div><div class="s">${[c?.name, `ב-${r.day} לחודש`, r.note].filter(Boolean).map(esc).join(', ')}</div></div><div class="a num">₪${fmt(r.amount)}</div></div>`; }).join('') || '<div class="empty">אין</div>'}</div>
-  ${safe(() => openDebtsHTML())}
+  <p class="muted">חובות אישיים (כמו לשמעון) והפקדות לקופות נמצאים בלשונית "חובות והפקדות".</p>
   <p class="muted">הרשימה הזו לתכנון. החיובים עצמם נרשמים לבד מהבנק ומהאשראי.</p>`;
 }
 // חובות ופיקדונות פתוחים: לפי השם, מכל השנים
@@ -617,6 +619,84 @@ function openDebtsHTML() {
     ${open.map(row).join('') || '<div class="empty">אין חובות פתוחים</div>'}
     ${closed.length ? `<details style="margin-top:8px"><summary class="muted" style="cursor:pointer">נסגרו (${closed.length})</summary>${closed.map(row).join('')}</details>` : ''}</div>`;
 }
+// ---------- חובות והפקדות ----------
+const LK = { owe: 'אני חייב', owed: 'חייבים לי', deposit: 'הפקדות וקופות' };
+const LBTN = { owe: ['לקחתי עוד', 'החזרתי'], owed: ['הלוויתי / שילמתי עבורו', 'החזיר לי'], deposit: ['הפקדה', 'משיכה'] };
+function ledgerAccounts() {
+  const acc = {};
+  const add = (kind, party, e) => { const k = kind + '|' + party; (acc[k] = acc[k] || { kind, party, entries: [], bal: 0 }).entries.push(e); acc[k].bal += e.amount; };
+  (S.ledger || []).forEach(e => add(e.kind, e.party, { ...e, src: 'ledger' }));
+  (S.flagged || []).forEach(t => { const party = t.party || 'ללא שם', out = t.type !== 'income', note = t.note || t.description;
+    if (t.flag === 'lent') add('owed', party, { id: 't' + t.id, txId: t.id, date: t.date, amount: out ? t.amount : -t.amount, note, src: 'tx' });
+    else add('owe', party, { id: 't' + t.id, txId: t.id, date: t.date, amount: out ? -t.amount : t.amount, note, src: 'tx' }); });
+  Object.values(acc).forEach(a => a.entries.sort((x, y) => x.date.localeCompare(y.date) || String(x.id).localeCompare(String(y.id))));
+  return Object.values(acc);
+}
+let LKEYS = [], CURL = null;
+function ledgerHTML() {
+  LKEYS = [];
+  const all = ledgerAccounts();
+  const tot = k => all.filter(a => a.kind === k).reduce((x, a) => x + a.bal, 0);
+  const card = a => { const last = a.entries[a.entries.length - 1];
+    return `<div class="ob" onclick="openLedger(${LKEYS.push([a.kind, a.party]) - 1})"><div><div class="n">${esc(a.party)}</div>
+      <div class="s">${a.entries.length} רישומים${last ? `, אחרון ${hDate(last.date)} (${gDate(last.date)})${last.note ? ': ' + esc(last.note) : ''}` : ''}</div></div>
+      <div class="a num">${Math.abs(a.bal) < 1 ? '✓ 0' : M(a.bal)}</div></div>`; };
+  const section = k => { const l = all.filter(a => a.kind === k).sort((a, b) => Math.abs(b.bal) - Math.abs(a.bal)); const open = l.filter(a => Math.abs(a.bal) >= 1), closed = l.filter(a => Math.abs(a.bal) < 1);
+    return `<div class="panel"><div class="ph"><h2>${LK[k]}</h2><b>${M(tot(k))}</b></div>
+      ${open.map(card).join('') || '<div class="empty">אין</div>'}
+      ${closed.length ? `<details style="margin-top:8px"><summary class="muted" style="cursor:pointer">נסגרו (${closed.length})</summary>${closed.map(card).join('')}</details>` : ''}</div>`; };
+  return `<div class="panel"><div class="ph"><h2>חובות והפקדות</h2></div>
+    <div class="totals"><div>אני חייב<b class="num">${M0(tot('owe'))}</b></div><div>חייבים לי<b class="num">${M0(tot('owed'))}</b></div><div>בהפקדות<b class="num">${M0(tot('deposit'))}</b></div></div>
+    <button class="btn" style="margin-top:12px" onclick="newLedger()">+ חוב או הפקדה חדשים</button>
+    <p class="muted">לכל חשבון יש יומן של הפקדות ומשיכות או הלוואות והחזרים. תנועות מהבנק שסימנת "מישהו חייב לי" או "כסף שאני מחזיק עבור מישהו" נכנסות לכאן לבד, לפי השם.</p></div>
+    ${section('owe')}${section('deposit')}${section('owed')}`;
+}
+function newLedger() {
+  const parties = [...new Set(ledgerAccounts().map(a => a.party))];
+  modal(`<div class="mh"><div class="r1"><h3>חוב או הפקדה חדשים</h3><button class="x" onclick="closeModal()" aria-label="סגירה">×</button></div>
+    <div class="seg" id="lkSeg">${Object.entries(LK).map(([k, l], i) => `<button class="${i === 0 ? 'on' : ''}" data-k="${k}" onclick="document.querySelectorAll('#lkSeg button').forEach(b=>b.classList.toggle('on',b===this))">${l}</button>`).join('')}</div></div>
+    <div class="mbd"><label class="f">שם (אדם או קופה)</label><input id="lP" list="lpl" placeholder="למשל שמעון, קמפיין מוסר, בדרכו"><datalist id="lpl">${parties.map(p => `<option value="${esc(p)}">`).join('')}</datalist>
+      <label class="f">סכום</label><input id="lA" type="number" inputmode="decimal" step="0.01">
+      <label class="f">תאריך</label><input id="lD" type="date" value="${todayIso()}">
+      <label class="f">הערה</label><input id="lN" placeholder="למשל: הלוואה לדירה">
+      <div class="mfoot"><button class="btn" onclick="saveNewLedger()">שמירה</button></div></div>`);
+}
+async function saveNewLedger() {
+  const kind = document.querySelector('#lkSeg button.on').dataset.k, amount = +$('#lA').value;
+  if (!$('#lP').value.trim() || !amount) return toast('צריך שם וסכום');
+  try { await api('/api/ledger', { method: 'POST', body: { kind, party: $('#lP').value, amount: Math.abs(amount), date: $('#lD').value, note: $('#lN').value } }); closeModal(); await loadYear(); render(); toast('נשמר'); } catch (e) { toast(e.message); }
+}
+function openLedger(kind, party) {
+  if (typeof kind === 'number') [kind, party] = LKEYS[kind];
+  CURL = [kind, party];
+  const a = ledgerAccounts().find(x => x.kind === kind && x.party === party);
+  if (!a) { closeModal(); render(); return; }
+  let run = 0;
+  const rows = a.entries.map(e => { run += e.amount; return `<div class="kv" style="align-items:center">
+      <span style="min-width:0">${hDate(e.date)} (${gDate(e.date)})${e.src === 'tx' ? ' <span class="tag gr">מהבנק</span>' : ''}<br><span class="muted">${esc(e.note || '')}</span></span>
+      <span style="display:flex;gap:10px;align-items:center;white-space:nowrap"><b class="num" style="color:${e.amount > 0 ? 'var(--text)' : 'var(--pos)'}">${e.amount > 0 ? '+' : '−'}₪${fmt(Math.abs(e.amount))}</b>
+        <span class="muted num" style="min-width:64px;text-align:left">${M(run)}</span>
+        ${e.src === 'ledger' ? `<button class="btn sm red" onclick="delLedger(${e.id})" aria-label="מחיקה">✕</button>` : `<button class="btn sm soft" onclick="closeModal();openTx(${e.txId})">פתח</button>`}</span></div>`; }).reverse().join('');
+  const [plus, minus] = LBTN[kind];
+  modal(`<div class="mh"><div class="r1"><h3>${esc(party)}</h3><button class="x" onclick="closeModal()" aria-label="סגירה">×</button></div>
+      <div class="muted" style="margin-top:6px">${LK[kind]}: יתרה <b style="font-size:20px;color:var(--text)">${M(a.bal)}</b></div></div>
+    <div class="mbd">
+      <div style="display:flex;gap:8px"><div style="flex:1"><label class="f">סכום</label><input id="eA" type="number" inputmode="decimal" step="0.01"></div><div style="flex:1"><label class="f">תאריך</label><input id="eD" type="date" value="${todayIso()}"></div></div>
+      <label class="f">הערה</label><input id="eN">
+      <div class="mfoot"><button class="btn" onclick="addLedger(1)">+ ${plus}</button><button class="btn soft" style="flex:1" onclick="addLedger(-1)">− ${minus}</button></div>
+      <h3 style="margin:18px 0 4px;font-size:16px">יומן <span class="muted" style="font-weight:400">(עמודה שמאלית = יתרה אחרי כל רישום)</span></h3>
+      ${rows || '<div class="empty">אין רישומים</div>'}
+      <div style="display:flex;gap:8px;margin-top:14px"><button class="btn sm soft" onclick="renameLedger()">שינוי שם</button>
+        ${a.entries.some(e => e.src === 'ledger') ? `<button class="btn sm red" onclick="delParty()">מחיקת החשבון</button>` : ''}</div>
+    </div>`);
+}
+async function addLedger(sign) { const [kind, party] = CURL;
+  const amount = +$('#eA').value; if (!amount) return toast('חסר סכום');
+  try { await api('/api/ledger', { method: 'POST', body: { kind, party, amount: sign * Math.abs(amount), date: $('#eD').value, note: $('#eN').value } }); await loadYear(); render(); openLedger(kind, party); toast('נרשם'); } catch (e) { toast(e.message); }
+}
+async function delLedger(id) { const [kind, party] = CURL; if (!confirm('למחוק את הרישום?')) return; try { await api('/api/ledger/' + id, { method: 'DELETE' }); await loadYear(); render(); openLedger(kind, party); } catch (e) { toast(e.message); } }
+async function renameLedger() { const [kind, party] = CURL; const to = prompt('שם חדש', party); if (!to || to === party) return; try { await api('/api/ledger/rename', { method: 'POST', body: { from: party, to, kind } }); await loadYear(); render(); openLedger(kind, to); } catch (e) { toast(e.message); } }
+async function delParty() { const [kind, party] = CURL; if (!confirm('למחוק את כל הרישומים הידניים של ' + party + '?')) return; try { await api('/api/ledger/delete-party', { method: 'POST', body: { kind, party } }); closeModal(); await loadYear(); render(); } catch (e) { toast(e.message); } }
 let R = null;
 function openRec(arg) {
   const r = typeof arg === 'number' ? S.boot.recurring.find(x => x.id === arg) : null;
@@ -712,7 +792,7 @@ function drawForm() {
       <label class="f">שיוך</label><div class="chips" id="flagChips">${[['', 'רגיל'], ['lent', 'מישהו חייב לי'], ['held', 'כסף שאני מחזיק עבור מישהו']].map(([v, l]) => `<button class="chip ${(F.flag || '') === v ? 'on' : ''}" onclick="setFlag('${v}')">${l}</button>`).join('')}</div>
       <div id="flagBox" class="${F.flag ? '' : 'hidden'}"><label class="f">${F.flag === 'held' ? 'עבור מי' : 'מי'}</label><input id="fParty" list="partyList" value="${esc(F.party || '')}" oninput="F.party=this.value" placeholder="למשל אנגלרד, שמעון">
         <datalist id="partyList">${[...new Set((S.flagged || []).map(x => x.party).filter(Boolean))].map(p => `<option value="${esc(p)}">`).join('')}</datalist>
-        <div class="muted" style="margin-top:6px">${F.flag === 'lent' ? 'לא נספר בהוצאות ובהכנסות. כשהוא מחזיר, סמן גם את ההחזר "מישהו חייב לי" עם אותו שם, והחוב ייסגר.' : 'לא נספר בהכנסות ובמעשרות. כשתעביר לו את הכסף, סמן גם את ההעברה בשיוך הזה עם אותו שם.'}</div></div>
+        <div class="muted" style="margin-top:6px">${F.flag === 'lent' ? 'לא נספר בהוצאות ובהכנסות, ונכנס ליומן בלשונית "חובות והפקדות". כשהוא מחזיר, סמן גם את ההחזר באותו שם.' : 'לא נספר בהכנסות ובמעשרות. כשתעביר לו את הכסף, סמן גם את ההעברה בשיוך הזה עם אותו שם.'}</div></div>
       <label class="f">הערה</label><textarea rows="2" oninput="F.note=this.value" placeholder="למשל: עבור קו השיעורים">${esc(F.note)}</textarea>
       <label class="f">קבלה</label><div class="rbox" id="rbox">${receiptBox()}</div>
       <div class="mfoot"><button class="btn ${F.type === 'maaser' ? 'maa' : ''}" id="fSave" onclick="saveTx()">שמירה</button>${F.id ? `<button class="btn red" onclick="delTx()">${fromBank ? 'לא לספור' : 'מחיקה'}</button>` : ''}</div>
