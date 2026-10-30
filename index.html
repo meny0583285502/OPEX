@@ -246,6 +246,28 @@ function suggest(text, type) {
 // ---------- חישובים ----------
 function sums(list) { const r = { income: 0, expense: 0, maaser: 0, liable: 0 }; list.forEach(t => { if (t.flag) return; r[t.type] += t.amount; if (t.type === 'income' && t.maaser_liable) r.liable += t.amount; }); return r; }
 const inMonth = (list, m) => list.filter(t => hMonth(t.date) === m);
+// הוראות קבע מהעו"ש (משכנתא, חובות, קבועות) שעוד יירדו ב-30 הימים הקרובים, לפי רשימת ההתחייבויות
+function upcomingRecurring(days = 30) {
+  const t = new Date(); t.setHours(12, 0, 0, 0); const end = new Date(t); end.setDate(end.getDate() + days);
+  const items = (S.boot.recurring || []).filter(r => r.active !== 0 && r.payment_method !== 'אשראי' && remainingNow(r) !== 0).map(r => {
+    const at = (y, m) => new Date(y, m, Math.min(r.day || 1, new Date(y, m + 1, 0).getDate()), 12);
+    let d = at(t.getFullYear(), t.getMonth()); if (d <= t) d = at(t.getFullYear(), t.getMonth() + 1);
+    return { r, date: dateToIso(d) };
+  }).filter(x => isoToDate(x.date) <= end).sort((a, b) => a.date.localeCompare(b.date));
+  items.end = dateToIso(end);
+  return items;
+}
+function showUpcoming() {
+  const b = bankBalance(); if (!b) return;
+  const u = upcomingRecurring(), sum = u.reduce((a, x) => a + x.r.amount, 0);
+  const cards = (S.boot.upcoming || []).map(x => `<div class="kv"><span>אשראי ${SRC_NAME[x.source] || x.source} ${esc(String(x.account).slice(-4))}<br><span class="muted">יורד ב-${gDate(x.first)} (${hDate(x.first)})</span></span><b>${M(-x.s)}</b></div>`).join('');
+  modal(`<div class="mh"><div class="r1"><h3>מה עוד יירד מהחשבון</h3><button class="x" onclick="closeModal()" aria-label="סגירה">×</button></div></div>
+    <div class="mbd"><div class="kv"><span>בחשבון עכשיו</span><b>${M(b.total)}</b></div>
+      ${cards}
+      ${u.map(x => `<div class="kv"><span>${esc(x.r.name)}<br><span class="muted">${x.r.kind === 'debt' ? 'חוב' : 'קבועה'}, יורד ב-${gDate(x.date)} (${hDate(x.date)})</span></span><b>${M(x.r.amount)}</b></div>`).join('')}
+      <div class="kv" style="font-size:17px"><span><b>אחרי הכול</b></span><b>${M(b.after - sum)}</b></div>
+      <p class="muted">הוראות הקבע נלקחות מלשונית "קבועים" (התחייבויות), לתקופה של 30 יום. מה שמסומן שם "יורד מ: אשראי" לא נכלל כאן, כי הוא כבר בחיובי האשראי.</p></div>`);
+}
 function accMeta() { try { return JSON.parse(S.boot.settings.accounts_meta || '{}'); } catch { return {}; } }
 const accKey = a => a.source + '|' + a.account;
 function accLabel(a) { const m = accMeta()[accKey(a)]; return (m && m.label) || `${SRC_NAME[a.source] || a.source} ${String(a.account).slice(-4)}`; }
@@ -299,7 +321,8 @@ function heroHTML(full) {
   if (!full) return `<div class="hero" style="padding-bottom:14px">${top}${S.progress ? `<div class="upd">מעדכן מהבנק ${S.progress.percent}%</div>` : S.syncMsg ? `<div class="upd">${S.syncMsg}</div>` : ''}</div>`;
   const bal = b ? `<div class="bal-l">בחשבון עכשיו</div><div class="bal">${M0(b.total)}</div>
       ${b.many ? `<div class="upd" style="margin-top:2px">${b.many.map(a => `${esc(accLabel(a))}: ${M0(a.balance)}`).join(' | ')}</div>` : ''}
-      <div class="bal-sub"><div>אשראי שעוד לא ירד<b class="num">₪${fmt0(-b.upcoming)}</b></div><div>אחרי האשראי<b>${M0(b.after)}</b></div>${b.hasSav ? `<div>בחסכונות<b>${M0(b.savings)}</b></div>` : ''}${b.ledger.map(a => `<div>${esc(accLabel(a))} (הפקדות)<b>${M0(a.balance)}</b></div>`).join('')}${cashKnown() ? `<div>מזומן<b>${M0(cashStatus().wallet)}</b></div>` : ''}</div>
+      <div class="bal-sub" style="cursor:pointer" onclick="showUpcoming()" title="פירוט"><div>אשראי שעוד לא ירד<b class="num">₪${fmt0(-b.upcoming)}</b></div>${(() => { const u = upcomingRecurring(); const sum = u.reduce((a, x) => a + x.r.amount, 0);
+        return sum ? `<div>הוראות קבע עד ${gDate(u.end)}<b class="num">₪${fmt0(sum)}</b></div><div>אחרי האשראי וההוראות<b>${M0(b.after - sum)}</b></div>` : `<div>אחרי האשראי<b>${M0(b.after)}</b></div>`; })()}${b.hasSav ? `<div>בחסכונות<b>${M0(b.savings)}</b></div>` : ''}${b.ledger.map(a => `<div>${esc(accLabel(a))} (הפקדות)<b>${M0(a.balance)}</b></div>`).join('')}${cashKnown() ? `<div>מזומן<b>${M0(cashStatus().wallet)}</b></div>` : ''}</div>
       ${S.progress ? progressHTML() : `<div class="upd">${S.syncMsg ? S.syncMsg : 'עודכן ' + ago(b.upd)}</div>`}`
     : `<div class="bal-l">בחשבון עכשיו</div><div style="font-size:20px;font-weight:700;margin-top:4px">לחץ על כפתור העדכון כדי לראות את היתרה</div>${S.progress ? progressHTML() : S.syncMsg ? `<div class="upd">${S.syncMsg}</div>` : ''}`;
   return `<div class="hero">${top}${bal}</div>`;
@@ -337,7 +360,7 @@ function incomeViewHTML() {
   <button class="btn" style="width:100%;margin-bottom:12px;background:var(--pos)" onclick="openTx({type:'income'})">+ רישום הכנסה</button>
   ${safe(() => monthIncomeHTML(inMonth(S.txs, S.month)))}${safe(() => incomesPanel())}`;
 }
-const APP_VERSION = '30.10.26-ב';
+const APP_VERSION = '30.10.26-ג';
 function safe(fn) { try { return fn(); } catch (e) { console.error(e); return `<div class="panel"><div class="muted">שגיאה בהצגת החלק הזה: ${esc(e.message)}</div></div>`; } }
 function monthIncomeHTML(list) {
   const inc = list.filter(t => t.type === 'income' && !t.flag).sort((a, b) => a.date.localeCompare(b.date));
@@ -697,7 +720,7 @@ function oblHTML() {
       <div><div class="n">${esc(r.name)}</div><div class="s">${rem ? `נשארו ${rem} תשלומים, ${endLabel(r, rem)}` : 'שולם במלואו'}, ב-${r.day} לחודש</div></div>
       <div style="text-align:left"><div class="a num">₪${fmt(r.amount)}</div><div class="s">${r.balance == null && r.name.includes('משכנתא') ? '' : `יתרה ₪${fmt0(bal)}`}</div></div></div>`).join('') || '<div class="empty">אין חובות</div>'}</div>
   <div class="panel"><div class="ph"><h2>הוצאות קבועות</h2></div>${fixed.map(r => { const c = catById(r.category_id); return `<div class="ob" onclick="openRec(${r.id})">
-      <div><div class="n">${c?.icon || ''} ${esc(r.name)}</div><div class="s">${[c?.name, `ב-${r.day} לחודש`, r.note].filter(Boolean).map(esc).join(', ')}</div></div><div class="a num">₪${fmt(r.amount)}</div></div>`; }).join('') || '<div class="empty">אין</div>'}</div>
+      <div><div class="n">${c?.icon || ''} ${esc(r.name)}</div><div class="s">${[c?.name, `ב-${r.day} לחודש`, r.payment_method === 'אשראי' ? 'באשראי' : 'מהעו"ש', r.note].filter(Boolean).map(esc).join(', ')}</div></div><div class="a num">₪${fmt(r.amount)}</div></div>`; }).join('') || '<div class="empty">אין</div>'}</div>
   <p class="muted">חובות אישיים (כמו לשמעון) והפקדות לקופות נמצאים בלשונית "חובות והפקדות".</p>
   <p class="muted">הרשימה הזו לתכנון. החיובים עצמם נרשמים לבד מהבנק ומהאשראי.</p>`;
 }
@@ -805,11 +828,12 @@ function openRec(arg) {
       <div style="display:flex;gap:10px"><div style="flex:1"><label class="f">סכום חודשי</label><input id="rA" type="number" inputmode="decimal" step="0.01" value="${esc(R.amount)}"></div><div style="flex:1"><label class="f">יום בחודש</label><input id="rD" type="number" min="1" max="31" value="${esc(R.day)}"></div></div>
       <div style="display:flex;gap:10px"><div style="flex:1"><label class="f">תשלומים שנותרו</label><input id="rR" type="number" min="0" value="${esc(R.remaining)}"></div><div style="flex:1"><label class="f">יתרת חוב</label><input id="rB" type="number" step="0.01" value="${esc(R.balance ?? '')}"></div></div>
       <label class="f">קטגוריה</label><select id="rC"><option value="">ללא</option>${cats('expense').filter(c => c.active).map(c => `<option value="${c.id}" ${R.category_id === c.id ? 'selected' : ''}>${c.icon} ${esc(c.name)}</option>`).join('')}</select>
+      <label class="f">יורד מ</label><select id="rP"><option value="הוראת קבע" ${R.payment_method !== 'אשראי' ? 'selected' : ''}>העו"ש (הוראת קבע)</option><option value="אשראי" ${R.payment_method === 'אשראי' ? 'selected' : ''}>כרטיס אשראי</option></select>
       <label class="f">הערה</label><input id="rT" value="${esc(R.note || '')}">
       <div class="mfoot"><button class="btn" onclick="saveRec()">שמירה</button>${R.id ? `<button class="btn red" onclick="delRec()">מחיקה</button>` : ''}</div></div>`);
 }
 async function saveRec() {
-  const b = { kind: R.kind, name: $('#rN').value, amount: +$('#rA').value, day: +$('#rD').value || 1, remaining: $('#rR').value, balance: $('#rB').value, category_id: +$('#rC').value || null, payment_method: R.payment_method || 'הוראת קבע', note: $('#rT').value, as_of: todayIso(), active: 1 };
+  const b = { kind: R.kind, name: $('#rN').value, amount: +$('#rA').value, day: +$('#rD').value || 1, remaining: $('#rR').value, balance: $('#rB').value, category_id: +$('#rC').value || null, payment_method: $('#rP').value, note: $('#rT').value, as_of: todayIso(), active: 1 };
   if (!b.name || !b.amount) return toast('צריך שם וסכום');
   try { if (R.id) await api('/api/recurring/' + R.id, { method: 'PUT', body: b }); else await api('/api/recurring', { method: 'POST', body: b }); closeModal(); await loadBoot(); render(); toast('נשמר'); } catch (e) { toast(e.message); }
 }
