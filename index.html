@@ -246,13 +246,19 @@ function suggest(text, type) {
 // ---------- חישובים ----------
 function sums(list) { const r = { income: 0, expense: 0, maaser: 0, liable: 0 }; list.forEach(t => { if (t.flag) return; r[t.type] += t.amount; if (t.type === 'income' && t.maaser_liable) r.liable += t.amount; }); return r; }
 const inMonth = (list, m) => list.filter(t => hMonth(t.date) === m);
+function accMeta() { try { return JSON.parse(S.boot.settings.accounts_meta || '{}'); } catch { return {}; } }
+const accKey = a => a.source + '|' + a.account;
+function accLabel(a) { const m = accMeta()[accKey(a)]; return (m && m.label) || `${SRC_NAME[a.source] || a.source} ${String(a.account).slice(-4)}`; }
 function bankBalance() {
+  const meta = accMeta();
   const all = (S.boot.accounts || []).filter(a => !CARD_SOURCES.includes(a.source));
-  const accs = all.filter(a => !a.savings), sav = all.filter(a => a.savings);
-  if (!accs.length) return null;
+  const isL = a => meta[accKey(a)] && meta[accKey(a)].ledger;
+  const accs = all.filter(a => !a.savings && !isL(a)), sav = all.filter(a => a.savings), led = all.filter(a => !a.savings && isL(a));
+  if (!accs.length && !led.length) return null;
   const upcoming = (S.boot.upcoming || []).reduce((a, u) => a + u.s, 0);
   const total = accs.reduce((a, x) => a + x.balance, 0);
-  return { total, upcoming, after: total + upcoming, savings: sav.reduce((a, x) => a + x.balance, 0), hasSav: sav.length > 0, upd: accs.map(a => a.updated_at).sort().pop() };
+  return { total, upcoming, after: total + upcoming, savings: sav.reduce((a, x) => a + x.balance, 0), hasSav: sav.length > 0,
+    ledger: led, many: accs.length > 1 ? accs : null, upd: all.map(a => a.updated_at).sort().pop() };
 }
 function ago(iso) { const min = Math.round((Date.now() - new Date(iso)) / 6e4); if (min < 2) return 'עכשיו'; if (min < 60) return `לפני ${min} דקות`; const h = Math.round(min / 60); if (h < 24) return `לפני ${h} שעות`; return `לפני ${Math.round(h / 24)} ימים`; }
 
@@ -287,11 +293,13 @@ function heroHTML(full) {
   const b = bankBalance();
   const top = `<div class="htop"><div class="t">כספי הבית</div>
       <button class="ib ${S.syncing ? 'spin' : ''}" onclick="bridgeUpdate()" title="עדכון מהבנק ומהאשראי" aria-label="עדכון מהבנק"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 01-15.5 6.2M3 12A9 9 0 0118.5 5.8"/><path d="M18.5 2v3.8h-3.8M5.5 22v-3.8h3.8"/></svg></button>
+      <button class="ib" onclick="showAccDetails()" title="פרטי חשבון להעתקה" aria-label="פרטי חשבון"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h4"/></svg></button>
       <button class="ib" onclick="lockNow()" title="נעילה (צריך סיסמה כדי להיכנס שוב)" aria-label="נעילה"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 018 0v3"/></svg></button>
       <button class="ib" onclick="go('settings')" title="הגדרות" aria-label="הגדרות"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M2.5 12h3M18.5 12h3M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg></button></div>`;
   if (!full) return `<div class="hero" style="padding-bottom:14px">${top}${S.progress ? `<div class="upd">מעדכן מהבנק ${S.progress.percent}%</div>` : S.syncMsg ? `<div class="upd">${S.syncMsg}</div>` : ''}</div>`;
   const bal = b ? `<div class="bal-l">בחשבון עכשיו</div><div class="bal">${M0(b.total)}</div>
-      <div class="bal-sub"><div>אשראי שעוד לא ירד<b class="num">₪${fmt0(-b.upcoming)}</b></div><div>אחרי האשראי<b>${M0(b.after)}</b></div>${b.hasSav ? `<div>בחסכונות<b>${M0(b.savings)}</b></div>` : ''}</div>
+      ${b.many ? `<div class="upd" style="margin-top:2px">${b.many.map(a => `${esc(accLabel(a))}: ${M0(a.balance)}`).join(' | ')}</div>` : ''}
+      <div class="bal-sub"><div>אשראי שעוד לא ירד<b class="num">₪${fmt0(-b.upcoming)}</b></div><div>אחרי האשראי<b>${M0(b.after)}</b></div>${b.hasSav ? `<div>בחסכונות<b>${M0(b.savings)}</b></div>` : ''}${b.ledger.map(a => `<div>${esc(accLabel(a))} (הפקדות)<b>${M0(a.balance)}</b></div>`).join('')}${cashKnown() ? `<div>מזומן<b>${M0(cashStatus().wallet)}</b></div>` : ''}</div>
       ${S.progress ? progressHTML() : `<div class="upd">${S.syncMsg ? S.syncMsg : 'עודכן ' + ago(b.upd)}</div>`}`
     : `<div class="bal-l">בחשבון עכשיו</div><div style="font-size:20px;font-weight:700;margin-top:4px">לחץ על כפתור העדכון כדי לראות את היתרה</div>${S.progress ? progressHTML() : S.syncMsg ? `<div class="upd">${S.syncMsg}</div>` : ''}`;
   return `<div class="hero">${top}${bal}</div>`;
@@ -329,7 +337,7 @@ function incomeViewHTML() {
   <button class="btn" style="width:100%;margin-bottom:12px;background:var(--pos)" onclick="openTx({type:'income'})">+ רישום הכנסה</button>
   ${safe(() => monthIncomeHTML(inMonth(S.txs, S.month)))}${safe(() => incomesPanel())}`;
 }
-const APP_VERSION = '30.10.26-א';
+const APP_VERSION = '30.10.26-ב';
 function safe(fn) { try { return fn(); } catch (e) { console.error(e); return `<div class="panel"><div class="muted">שגיאה בהצגת החלק הזה: ${esc(e.message)}</div></div>`; } }
 function monthIncomeHTML(list) {
   const inc = list.filter(t => t.type === 'income' && !t.flag).sort((a, b) => a.date.localeCompare(b.date));
@@ -499,30 +507,71 @@ async function countAsMaaser(id) {
 }
 
 // ---------- מזומן: כמה משכת וכמה דיווחת ----------
+function cashKnown() { return !!S.boot.settings.cash_base_at; }
+const nowSql = () => new Date().toISOString().slice(0, 19).replace('T', ' ');
+// מזומן: "כמה יש לי" האחרון שעדכנת + משיכות מאז − הוצאות במזומן שנרשמו מאז
 function cashStatus() {
-  const start = S.boot.settings.bank_start || '2026-09-12';
-  const w = (S.bank || []).filter(b => b.status === 'offset' && b.kind === 'cash' && b.amount < 0 && b.date >= start);
+  const st = S.boot.settings, start = st.bank_start || '2026-09-12', baseAt = st.cash_base_at || '', base = +st.cash_base || 0;
+  const baseDate = baseAt ? baseAt.slice(0, 10) : '';
+  const w = (S.bank || []).filter(b => b.status === 'offset' && b.kind === 'cash' && b.amount < 0 && (baseAt ? b.date > baseDate : b.date >= start)).sort((a, b) => b.date.localeCompare(a.date));
+  const after = t => baseAt ? String(t.created_at || '') > baseAt : t.date >= start;
+  const cashTx = S.txs.filter(t => !t.flag && t.payment_method === 'מזומן' && after(t));
+  const out = cashTx.filter(t => t.type !== 'income').reduce((a, t) => a + t.amount, 0), inc = cashTx.filter(t => t.type === 'income').reduce((a, t) => a + t.amount, 0);
   const withdrawn = w.reduce((a, b) => a - b.amount, 0);
-  const reported = S.txs.filter(t => t.type !== 'income' && !t.flag && t.payment_method === 'מזומן' && t.date >= start).reduce((a, t) => a + t.amount, 0);
-  return { w: w.sort((a, b) => b.date.localeCompare(a.date)), withdrawn, reported, left: withdrawn - reported };
+  return { w, withdrawn, reported: out, left: withdrawn - out, wallet: baseAt ? base + withdrawn + inc - out : null, base, baseAt };
 }
 function cashBannerHTML() {
   const c = cashStatus();
-  if (c.left < 1) return '';
+  const pending = c.w.length && c.left >= 1;
+  if (!pending && !cashKnown()) return `<div class="panel" style="display:flex;justify-content:space-between;align-items:center;gap:10px"><span>💵 כמה מזומן יש לך? כתוב פעם אחת, והתוכנה תעקוב.</span><button class="btn sm soft" onclick="cashUpdate()">עדכון מזומן</button></div>`;
   const last = c.w[0];
-  return `<div class="panel" style="border:2px solid #F2B705;background:#FFF8E1">
-    <div class="ph"><h2>💵 יצא מזומן, צריך לדווח על מה</h2><b>${M(c.left)}</b></div>
-    <div class="muted">משכת ${M(c.withdrawn)} (אחרון: ${M(-last.amount)} ב-${gDate(last.date)}, ${hDate(last.date)}). דיווחת על ${M(c.reported)}. כל הוצאה במזומן שתרשום תקטין את הסכום.</div>
+  return `<div class="panel" style="${pending ? 'border:2px solid #F2B705;background:#FFF8E1' : ''}">
+    <div class="ph"><h2>💵 ${pending ? 'יצא מזומן, דווח על מה או עדכן כמה נשאר' : 'מזומן'}</h2>${c.wallet != null ? `<b>אצלך: ${M(c.wallet)}</b>` : ''}</div>
+    ${pending ? `<div class="muted">משכת ${M(c.withdrawn)}${last ? ` (אחרון: ${M(-last.amount)} ב-${gDate(last.date)}, ${hDate(last.date)})` : ''} ודיווחת על ${M(c.reported)}. נשאר לדווח ${M(c.left)}.</div>`
+      : `<div class="muted">עודכן לאחרונה ${c.baseAt ? ago(c.baseAt.replace(' ', 'T') + 'Z') : ''}. כל הוצאה או הכנסה במזומן שתרשום מעדכנת את הסכום.</div>`}
     <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-      <button class="btn" onclick="openTx({type:'expense',payment_method:'מזומן'})">דיווח הוצאה במזומן</button>
-      <button class="btn soft" onclick="openTx({type:'maaser',payment_method:'מזומן'})">מעשרות במזומן</button>
-      <button class="btn soft" onclick="cashRest(${c.left.toFixed(2)})">את השאר לרשום כ"שונות"</button></div></div>`;
+      <button class="btn${pending ? '' : ' sm'}" onclick="openTx({type:'expense',payment_method:'מזומן'})">הוצאה במזומן</button>
+      <button class="btn soft${pending ? '' : ' sm'}" onclick="cashUpdate()">עדכון: כמה יש לי עכשיו</button></div></div>`;
+}
+function cashUpdate() {
+  const c = cashStatus();
+  const expect = c.wallet != null ? c.wallet : null;
+  modal(`<div class="mh"><div class="r1"><h3>כמה מזומן יש לך עכשיו?</h3><button class="x" onclick="closeModal()" aria-label="סגירה">×</button></div></div>
+    <div class="mbd"><input id="cA" class="amt" style="width:100%;background:#fff;border-radius:14px;margin-top:10px" type="number" inputmode="decimal" step="0.01" placeholder="₪0" value="">
+      ${expect != null ? `<p class="muted">לפי התוכנה אמור להיות לך ${M(expect)}.</p>` : c.left >= 1 ? `<p class="muted">משיכות שעוד לא דווחו: ${M(c.left)}. אחרי העדכון הן לא יופיעו יותר.</p>` : ''}
+      <label class="check"><input type="checkbox" id="cDiff"> לרשום את ההפרש כהוצאה במזומן ("מזומן שלא פורט")</label>
+      <p class="muted">בלי הסימון, הסכום פשוט מתעדכן ולא נרשמת הוצאה.</p>
+      <div class="mfoot"><button class="btn" onclick="saveCash(${expect != null ? expect : (c.left >= 1 ? c.left : 'null')})">שמירה</button></div></div>`);
+  setTimeout(() => $('#cA')?.focus(), 60);
+}
+async function saveCash(expect) {
+  const v = $('#cA').value; if (v === '') return toast('כתוב סכום');
+  const now = +v, diff = expect != null ? expect - now : 0;
+  try {
+    if ($('#cDiff').checked && diff >= 1) {
+      const cat = cats('expense').find(c => c.name === 'שונות');
+      await api('/api/tx', { method: 'POST', body: { type: 'expense', date: todayIso(), amount: diff, category_id: cat ? cat.id : null, description: 'מזומן שלא פורט', payment_method: 'מזומן', note: 'הפרש בעדכון מזומן' } });
+    }
+    await new Promise(r => setTimeout(r, 1100)); // שהרישום ייחשב לפני נקודת העדכון
+    await api('/api/settings', { method: 'PUT', body: { cash_base: String(now), cash_base_at: nowSql() } });
+    closeModal(); await reloadAll(); toast('המזומן עודכן');
+  } catch (e) { toast(e.message); }
 }
 async function cashRest(amount) {
   if (!confirm(`לרשום ₪${fmt(amount)} כהוצאה במזומן בקטגוריה "שונות"?`)) return;
   const cat = cats('expense').find(c => c.name === 'שונות');
   try { await api('/api/tx', { method: 'POST', body: { type: 'expense', date: todayIso(), amount, category_id: cat ? cat.id : null, description: 'מזומן שלא פורט', payment_method: 'מזומן', note: 'יתרת משיכות מזומן' } }); await reloadAll(); toast('נרשם'); } catch (e) { toast(e.message); }
 }
+
+function showAccDetails() {
+  const meta = accMeta();
+  const list = Object.entries(meta).filter(([, m]) => m && m.details);
+  modal(`<div class="mh"><div class="r1"><h3>פרטי חשבון להעתקה</h3><button class="x" onclick="closeModal()" aria-label="סגירה">×</button></div></div>
+    <div class="mbd">${list.length ? list.map(([k, m], i) => `<div class="panel" style="margin-top:10px"><div class="ph"><h2>${esc(m.label || k)}</h2><button class="btn sm" onclick="copyAcc(${i})">העתקה</button></div>
+      <div style="white-space:pre-line" id="accd${i}">${esc(m.details)}</div></div>`).join('')
+      : '<p class="muted" style="margin-top:12px">עוד לא נכתבו פרטים. בהגדרות, תחת "חשבונות בנק", כותבים לכל חשבון את הפרטים (בנק, סניף, מספר חשבון, שם בעל החשבון).</p>'}</div>`);
+}
+async function copyAcc(i) { const t = $('#accd' + i).innerText; try { await navigator.clipboard.writeText(t); toast('הועתק'); } catch { const r = document.createRange(); r.selectNode($('#accd' + i)); getSelection().removeAllRanges(); getSelection().addRange(r); toast('סמן והעתק עם Ctrl+C'); } }
 
 // ---------- בדיקה ----------
 function cardMatch(bill) {
@@ -668,7 +717,7 @@ function openDebtsHTML() {
     ${closed.length ? `<details style="margin-top:8px"><summary class="muted" style="cursor:pointer">נסגרו (${closed.length})</summary>${closed.map(row).join('')}</details>` : ''}</div>`;
 }
 // ---------- חובות והפקדות ----------
-const LK = { owe: 'אני חייב', owed: 'חייבים לי', deposit: 'הפקדות וקופות' };
+const LK = { owe: 'אני חייב / מחזיק עבור אחרים', owed: 'חייבים לי', deposit: 'הפקדות וקופות' };
 const LBTN = { owe: ['לקחתי עוד', 'החזרתי'], owed: ['הלוויתי / שילמתי עבורו', 'החזיר לי'], deposit: ['הפקדה', 'משיכה'] };
 function ledgerAccounts() {
   const acc = {};
@@ -787,6 +836,7 @@ function settingsHTML() {
   <div class="panel"><div class="ph"><h2>קטגוריות הכנסות</h2></div>${block('income')}<div style="display:flex;gap:8px;margin-top:10px"><input id="newInc" placeholder="קטגוריה חדשה"><button class="btn sm" onclick="catAdd('income','newInc')">הוספה</button></div></div>
   <div class="panel"><div class="ph"><h2>גיבוי וייבוא</h2></div><button class="btn soft" onclick="exportAll()">הורדת גיבוי</button>
     <label class="f">ייבוא מקובץ</label><input type="file" accept=".json" onchange="importFile(this)"><p class="muted">רישום שכבר מגיע מהבנק או מהאשראי לא ייכנס פעמיים.</p></div>
+  ${accountsSettingsHTML()}
   <div class="panel"><div class="ph"><h2>נעילה</h2></div>
     <label class="f">נעילה אוטומטית אחרי כמה דקות בלי שימוש (0 = בלי נעילה)</label>
     <input type="number" min="0" value="${lockMinutes()}" onchange="lsSet('kb_lock', String(Math.max(0, parseInt(this.value) || 0)));toast('נשמר')">
@@ -794,6 +844,27 @@ function settingsHTML() {
   <button class="btn red" style="width:100%" onclick="logout()">יציאה</button>
   <p class="muted" style="text-align:center">גרסה ${APP_VERSION}</p>`;
 }
+function accountsSettingsHTML() {
+  const meta = accMeta();
+  const scraped = (S.boot.accounts || []).filter(a => !CARD_SOURCES.includes(a.source) && !a.savings).map(a => ({ key: accKey(a), def: accLabel(a), bal: a.balance, scraped: true }));
+  const manual = Object.keys(meta).filter(k => k.startsWith('manual|')).map(k => ({ key: k, def: '', scraped: false }));
+  const rows = [...scraped, ...manual].map(a => { const m = meta[a.key] || {}; return `<div style="padding:10px 0;border-bottom:1px solid var(--line)">
+      <div style="display:flex;gap:8px;align-items:center"><input value="${esc(m.label || a.def)}" placeholder="שם לחשבון" data-k="${esc(a.key)}" data-f="label" class="accf">${a.scraped ? `<span class="muted" style="white-space:nowrap">${M0(a.bal)}</span>` : `<button class="btn sm red" onclick="delAccMeta('${esc(a.key)}')">✕</button>`}</div>
+      <textarea rows="3" style="margin-top:6px" placeholder="פרטים להעתקה: בנק, סניף, מספר חשבון, שם" data-k="${esc(a.key)}" data-f="details" class="accf">${esc(m.details || '')}</textarea>
+      ${a.scraped ? `<label class="check" style="margin-top:6px"><input type="checkbox" class="accf" data-k="${esc(a.key)}" data-f="ledger" ${m.ledger ? 'checked' : ''}> חשבון הפקדות והלוואות: כל תנועה בו נכנסת ליומן "חובות והפקדות" ולא נספרת בהכנסות ובהוצאות</label>` : ''}</div>`; }).join('');
+  return `<div class="panel"><div class="ph"><h2>חשבונות בנק</h2></div>
+    ${rows || '<p class="muted">החשבונות יופיעו כאן אחרי העדכון הראשון מהבנק.</p>'}
+    <div style="display:flex;gap:8px;margin-top:10px"><button class="btn" onclick="saveAccMeta()">שמירה</button><button class="btn soft" onclick="addAccMeta()">+ חשבון להעתקה בלבד</button></div>
+    <p class="muted">חשבון נוסף בבנק אחר, או עם שם משתמש אחר, מוסיפים בדף ההגדרות של הגשר (http://127.0.0.1:17345).</p></div>`;
+}
+async function saveAccMeta(extra) {
+  const meta = accMeta();
+  document.querySelectorAll('.accf').forEach(el => { const k = el.dataset.k, f = el.dataset.f; meta[k] = meta[k] || {}; meta[k][f] = el.type === 'checkbox' ? el.checked : el.value; });
+  if (extra) extra(meta);
+  try { await api('/api/settings', { method: 'PUT', body: { accounts_meta: JSON.stringify(meta) } }); await loadBoot(); render(); toast('נשמר'); } catch (e) { toast(e.message); }
+}
+function addAccMeta() { saveAccMeta(m => { m['manual|' + Date.now().toString(36)] = { label: 'חשבון נוסף', details: '' }; }); }
+function delAccMeta(k) { if (confirm('למחוק?')) saveAccMeta(m => { delete m[k]; }); }
 async function catAdd(type, inp) { const n = $('#' + inp).value.trim(); if (!n) return; try { await api('/api/categories', { method: 'POST', body: { type, name: n } }); await loadBoot(); render(); } catch (e) { toast(e.message); } }
 async function catUpd(id, b) { try { await api('/api/categories/' + id, { method: 'PUT', body: b }); await loadBoot(); toast('נשמר'); } catch (e) { toast(e.message); } }
 async function catDel(id) { if (!confirm('למחוק את הקטגוריה?')) return; try { await api('/api/categories/' + id, { method: 'DELETE' }); await loadBoot(); render(); } catch (e) { toast(e.message); } }
@@ -837,10 +908,11 @@ function drawForm() {
       <div class="heb" id="fHeb">${esc(hDate(F.date))} ${gem(hparts(F.date).y)}</div>
       <label class="f">אמצעי תשלום</label><div class="chips">${PAY_METHODS.map(p => `<button class="chip ${F.payment_method === p ? 'on' : ''}" onclick="setPay(this,'${p.replace(/'/g, "\\'")}')">${esc(p)}</button>`).join('')}</div>
       ${F.type === 'income' ? `<label class="check"><input type="checkbox" id="fLiable" ${F.maaser_liable ? 'checked' : ''} onchange="F.maaser_liable=this.checked?1:0"> חייב במעשר</label>` : ''}
-      <label class="f">שיוך</label><div class="chips" id="flagChips">${[['', 'רגיל'], ['lent', 'מישהו חייב לי'], ['held', 'כסף שאני מחזיק עבור מישהו']].map(([v, l]) => `<button class="chip ${(F.flag || '') === v ? 'on' : ''}" onclick="setFlag('${v}')">${l}</button>`).join('')}</div>
+      <label class="f">שיוך</label><div class="chips" id="flagChips">${[['', 'רגיל'], ['held', 'כסף של מישהו (הפקדה / הלוואה אליי / החזר לו)'], ['lent', 'כסף שלי אצל מישהו (הלוואה ממני)']].map(([v, l]) => `<button class="chip ${(F.flag || '') === v ? 'on' : ''}" onclick="setFlag('${v}')">${l}</button>`).join('')}</div>
       <div id="flagBox" class="${F.flag ? '' : 'hidden'}"><label class="f">${F.flag === 'held' ? 'עבור מי' : 'מי'}</label><input id="fParty" list="partyList" value="${esc(F.party || '')}" oninput="F.party=this.value" placeholder="למשל אנגלרד, שמעון">
         <datalist id="partyList">${[...new Set((S.flagged || []).map(x => x.party).filter(Boolean))].map(p => `<option value="${esc(p)}">`).join('')}</datalist>
         <div class="muted" style="margin-top:6px">${F.flag === 'lent' ? 'לא נספר בהוצאות ובהכנסות, ונכנס ליומן בלשונית "חובות והפקדות". כשהוא מחזיר, סמן גם את ההחזר באותו שם.' : 'לא נספר בהכנסות ובמעשרות. כשתעביר לו את הכסף, סמן גם את ההעברה בשיוך הזה עם אותו שם.'}</div></div>
+      ${fromBank ? `<label class="check"><input type="checkbox" id="fRemFlag"> לסמן כך תמיד תנועות מאותו מקור, מעכשיו והלאה</label>` : ''}
       <label class="f">הערה</label><textarea rows="2" oninput="F.note=this.value" placeholder="למשל: עבור קו השיעורים">${esc(F.note)}</textarea>
       <label class="f">קבלה</label><div class="rbox" id="rbox">${receiptBox()}</div>
       ${fromBank && F.type === 'maaser' && F.origType !== 'maaser' ? `<div class="note">התרומה הזו תיספר במעשרות. תנועות קודמות מאותו נמען לא משתנות.
@@ -870,7 +942,7 @@ async function saveTx() {
   if (!(+F.amount > 0)) return toast('חסר סכום');
   if (F.type !== 'maaser' && !F.category_id) return toast('בחר קטגוריה');
   const btn = $('#fSave'); btn.disabled = true; btn.textContent = 'שומר…';
-  const body = { type: F.type, date: F.date, amount: +F.amount, category_id: F.type === 'maaser' ? null : F.category_id, description: F.description, payment_method: F.payment_method, note: F.note, maaser_liable: F.maaser_liable, remember_future: !!$('#fFuture')?.checked, flag: F.flag || '', party: F.flag ? (($('#fParty')?.value) ?? F.party ?? '') : '' };
+  const body = { type: F.type, date: F.date, amount: +F.amount, category_id: F.type === 'maaser' ? null : F.category_id, description: F.description, payment_method: F.payment_method, note: F.note, maaser_liable: F.maaser_liable, remember_future: !!$('#fFuture')?.checked, remember_flag: !!$('#fRemFlag')?.checked, flag: F.flag || '', party: F.flag ? (($('#fParty')?.value) ?? F.party ?? '') : '' };
   try {
     let id = F.id, msg = 'נשמר';
     if (id) { const r = await api('/api/tx/' + id, { method: 'PUT', body }); if (r.similar) msg = `נשמר, ועודכנו עוד ${r.similar} תנועות דומות`; }
