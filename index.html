@@ -51,6 +51,8 @@ button,input,select,textarea{font:inherit;color:inherit}
 .sum4 b{display:block;font-size:17px;color:var(--text);font-weight:700;margin-top:2px}
 .sum4 .p b{color:var(--pos)}.sum4 .m b{color:var(--maa)}
 @media(max-width:380px){.sum4 b{font-size:15px}}
+nav.bn .ls{display:none}
+@media(max-width:600px){nav.bn .lf{display:none}nav.bn .ls{display:inline}}
 @media(max-width:480px){nav.bn button{font-size:10px}nav.bn svg{width:20px;height:20px}}
 .flagtag{display:inline-block;font-size:11.5px;font-weight:600;border-radius:999px;padding:1px 8px;margin-inline-start:6px;background:#FFF1D6;color:#8A5300}
 .row.flagged .a{color:var(--muted)}
@@ -276,7 +278,8 @@ function render() {
   </div></nav>`;
   const on = document.querySelector('.mt.on'); if (on) on.scrollIntoView({ inline: 'center', block: 'nearest' });
 }
-function nb(v, label, path, badge) { return `<button class="${S.view === v ? 'on' : ''}" onclick="go('${v}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${path}</svg>${label}${badge ? `<span class="badge">${badge}</span>` : ''}</button>`; }
+const NB_SHORT = { 'נתוני החודש': 'החודש', 'חובות והפקדות': 'חובות', 'התחייבויות': 'קבועים' };
+function nb(v, label, path, badge) { return `<button class="${S.view === v ? 'on' : ''}" onclick="go('${v}')" title="${label}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${path}</svg><span class="lf">${label}</span><span class="ls">${NB_SHORT[label] || label}</span>${badge ? `<span class="badge">${badge}</span>` : ''}</button>`; }
 function go(v) { S.view = v; lsSet('kb_view', v); render(); window.scrollTo(0, 0); }
 function setMonth(m) { S.month = m; render(); }
 async function chYear(d) { S.hy += d; S.month = null; render(); try { await loadYear(); render(); } catch (e) { toast(e.message); } }
@@ -310,6 +313,7 @@ function homeHTML() {
     <button class="act inc" onclick="openTx({type:'income'})"><span>⬆</span>הכנסה</button>
     <button class="act oth" onclick="openTx({type:'expense'})"><span>＋</span>הוצאה אחרת</button>
   </div>
+  ${safe(() => cashBannerHTML())}
   <div class="panel"><div class="ph"><h2>תנועות ב${esc(S.month)}</h2><button class="l" onclick="S.filter={type:'',cat:'',month:'${S.month}',q:''};go('list')">חיפוש</button></div>
     ${statement(list.filter(t => !pendingInfo(t))) || `<div class="empty">אין תנועות בחודש הזה. לחץ על העדכון למעלה כדי למשוך מהבנק ומהאשראי.</div>`}</div>
   ${safe(() => pendingHTML(list))}`;
@@ -325,7 +329,7 @@ function incomeViewHTML() {
   <button class="btn" style="width:100%;margin-bottom:12px;background:var(--pos)" onclick="openTx({type:'income'})">+ רישום הכנסה</button>
   ${safe(() => monthIncomeHTML(inMonth(S.txs, S.month)))}${safe(() => incomesPanel())}`;
 }
-const APP_VERSION = '25.10.26-א';
+const APP_VERSION = '30.10.26-א';
 function safe(fn) { try { return fn(); } catch (e) { console.error(e); return `<div class="panel"><div class="muted">שגיאה בהצגת החלק הזה: ${esc(e.message)}</div></div>`; } }
 function monthIncomeHTML(list) {
   const inc = list.filter(t => t.type === 'income' && !t.flag).sort((a, b) => a.date.localeCompare(b.date));
@@ -448,6 +452,7 @@ function maaserHTML() {
     ${!m.opening ? `<p class="muted">חוב המעשרות מהשנה הקודמת עדיין לא הוכנס. ייבא את "מעשרות-תשפז.json" בהגדרות, או כתוב אותו בהגדרות ידנית.</p>` : ''}</div>
   <div class="panel"><div class="ph"><h2>שנת ${gem(S.hy)}</h2></div>
     <div class="kv"><span>הכנסות שחייבות במעשר</span><b>${M(s.liable)}</b></div><div class="kv"><span>מעשרות השנה</span><b>${M(s.liable * pct)}</b></div><div class="kv"><span>ניתן השנה</span><b>${M(s.maaser)}</b></div></div>
+  ${safe(() => donationsPanel())}
   <div class="panel"><div class="ph"><h2>למי נתתי</h2></div>${Object.entries(byR).sort((a, b) => b[1] - a[1]).map(([n, v]) => `<div class="kv"><span>${esc(n)}</span><b>${M(v)}</b></div>`).join('') || '<div class="empty">עדיין לא נרשמו מעשרות השנה</div>'}</div>
   <div class="panel"><div class="ph"><h2>כל התשלומים</h2></div>${statement(pays) || '<div class="empty">אין</div>'}</div>
   <p class="muted" style="text-align:center">את רשימת ההכנסות, וסימון מה חייב במעשר, תמצא בלשונית "הכנסות".</p>`;
@@ -474,6 +479,49 @@ async function toggleLiable(id, on) {
   const t = S.txs.find(x => x.id === id); if (!t) return;
   try { await api('/api/tx/' + id, { method: 'PUT', body: { type: t.type, date: t.date, amount: t.amount, category_id: t.category_id, description: t.description, payment_method: t.payment_method, note: t.note, maaser_liable: on ? 1 : 0 } });
     t.maaser_liable = on ? 1 : 0; S.maaser = await api('/api/maaser'); render(); toast(on ? 'נכנס לחישוב המעשרות' : 'הוצא מחישוב המעשרות'); } catch (e) { toast(e.message); }
+}
+
+// תרומות מהאשראי/בנק שנרשמו כהוצאה. אפשר לספור כל אחת במעשרות, רק מהיום והלאה
+function donationsPanel() {
+  const cat = cats('expense').find(c => c.name === 'תרומות וצדקה');
+  const list = S.txs.filter(t => t.type === 'expense' && !t.flag && cat && t.category_id === cat.id).sort((a, b) => b.date.localeCompare(a.date));
+  if (!list.length) return '';
+  return `<div class="panel"><div class="ph"><h2>תרומות שלא נספרו במעשרות</h2><b>${M(list.reduce((a, t) => a + t.amount, 0))}</b></div>
+    <p class="muted" style="margin:0 0 4px">תרומות מהאשראי ומהבנק. תרומה שקיזזת מראש (כמו תשלום חודשי על התחייבות ישנה) תשאיר כאן. תרומה חדשה: לחץ "ספור במעשרות".</p>
+    ${list.map(t => `<div class="kv" style="align-items:center"><span style="min-width:0">${esc(t.description)}<br><span class="muted">${hDate(t.date)} (${gDate(t.date)})${t.note ? ', ' + esc(t.note) : ''}</span></span>
+      <span style="display:flex;gap:8px;align-items:center;white-space:nowrap"><b>${M(t.amount)}</b><button class="btn sm maa" onclick="countAsMaaser(${t.id})">ספור במעשרות</button></span></div>`).join('')}</div>`;
+}
+async function countAsMaaser(id) {
+  const t = S.txs.find(x => x.id === id); if (!t) return;
+  const future = confirm(`לספור את ${t.description} (₪${fmt(t.amount)}) במעשרות.\n\nלספור במעשרות גם את התרומות הבאות לאותו נמען, מעכשיו והלאה?\nאישור = כן, גם הבאות. ביטול = רק הפעם.`);
+  try { await api('/api/tx/' + id, { method: 'PUT', body: { type: 'maaser', date: t.date, amount: t.amount, category_id: null, description: t.description, payment_method: t.payment_method, note: t.note, maaser_liable: 0, remember_future: future } });
+    await reloadAll(); toast(future ? 'נספר במעשרות, וגם הבאות ייספרו' : 'נספר במעשרות'); } catch (e) { toast(e.message); }
+}
+
+// ---------- מזומן: כמה משכת וכמה דיווחת ----------
+function cashStatus() {
+  const start = S.boot.settings.bank_start || '2026-09-12';
+  const w = (S.bank || []).filter(b => b.status === 'offset' && b.kind === 'cash' && b.amount < 0 && b.date >= start);
+  const withdrawn = w.reduce((a, b) => a - b.amount, 0);
+  const reported = S.txs.filter(t => t.type !== 'income' && !t.flag && t.payment_method === 'מזומן' && t.date >= start).reduce((a, t) => a + t.amount, 0);
+  return { w: w.sort((a, b) => b.date.localeCompare(a.date)), withdrawn, reported, left: withdrawn - reported };
+}
+function cashBannerHTML() {
+  const c = cashStatus();
+  if (c.left < 1) return '';
+  const last = c.w[0];
+  return `<div class="panel" style="border:2px solid #F2B705;background:#FFF8E1">
+    <div class="ph"><h2>💵 יצא מזומן, צריך לדווח על מה</h2><b>${M(c.left)}</b></div>
+    <div class="muted">משכת ${M(c.withdrawn)} (אחרון: ${M(-last.amount)} ב-${gDate(last.date)}, ${hDate(last.date)}). דיווחת על ${M(c.reported)}. כל הוצאה במזומן שתרשום תקטין את הסכום.</div>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+      <button class="btn" onclick="openTx({type:'expense',payment_method:'מזומן'})">דיווח הוצאה במזומן</button>
+      <button class="btn soft" onclick="openTx({type:'maaser',payment_method:'מזומן'})">מעשרות במזומן</button>
+      <button class="btn soft" onclick="cashRest(${c.left.toFixed(2)})">את השאר לרשום כ"שונות"</button></div></div>`;
+}
+async function cashRest(amount) {
+  if (!confirm(`לרשום ₪${fmt(amount)} כהוצאה במזומן בקטגוריה "שונות"?`)) return;
+  const cat = cats('expense').find(c => c.name === 'שונות');
+  try { await api('/api/tx', { method: 'POST', body: { type: 'expense', date: todayIso(), amount, category_id: cat ? cat.id : null, description: 'מזומן שלא פורט', payment_method: 'מזומן', note: 'יתרת משיכות מזומן' } }); await reloadAll(); toast('נרשם'); } catch (e) { toast(e.message); }
 }
 
 // ---------- בדיקה ----------
@@ -762,7 +810,7 @@ function closeModal() { $('#mbg')?.remove(); F = null; R = null; }
 let F = null;
 function openTx(arg) {
   const t = typeof arg === 'number' ? S.txs.find(x => x.id === arg) : null;
-  F = t ? { ...t, receipt: null, removeReceipt: false, catTouched: true }
+  F = t ? { ...t, receipt: null, removeReceipt: false, catTouched: true, origType: t.type }
     : { id: null, date: todayIso(), amount: '', category_id: null, description: '', payment_method: '', note: '', maaser_liable: 1, has_receipt: 0, receipt: null, catTouched: false, ...arg };
   drawForm();
 }
@@ -795,6 +843,8 @@ function drawForm() {
         <div class="muted" style="margin-top:6px">${F.flag === 'lent' ? 'לא נספר בהוצאות ובהכנסות, ונכנס ליומן בלשונית "חובות והפקדות". כשהוא מחזיר, סמן גם את ההחזר באותו שם.' : 'לא נספר בהכנסות ובמעשרות. כשתעביר לו את הכסף, סמן גם את ההעברה בשיוך הזה עם אותו שם.'}</div></div>
       <label class="f">הערה</label><textarea rows="2" oninput="F.note=this.value" placeholder="למשל: עבור קו השיעורים">${esc(F.note)}</textarea>
       <label class="f">קבלה</label><div class="rbox" id="rbox">${receiptBox()}</div>
+      ${fromBank && F.type === 'maaser' && F.origType !== 'maaser' ? `<div class="note">התרומה הזו תיספר במעשרות. תנועות קודמות מאותו נמען לא משתנות.
+        <label class="check" style="margin-top:8px"><input type="checkbox" id="fFuture"> לספור במעשרות גם את התרומות הבאות לאותו נמען, מעכשיו והלאה</label></div>` : ''}
       <div class="mfoot"><button class="btn ${F.type === 'maaser' ? 'maa' : ''}" id="fSave" onclick="saveTx()">שמירה</button>${F.id ? `<button class="btn red" onclick="delTx()">${fromBank ? 'לא לספור' : 'מחיקה'}</button>` : ''}</div>
     </div>`);
   if (!F.id && !F.amount) setTimeout(() => $('#fAmount')?.focus(), 60);
@@ -820,7 +870,7 @@ async function saveTx() {
   if (!(+F.amount > 0)) return toast('חסר סכום');
   if (F.type !== 'maaser' && !F.category_id) return toast('בחר קטגוריה');
   const btn = $('#fSave'); btn.disabled = true; btn.textContent = 'שומר…';
-  const body = { type: F.type, date: F.date, amount: +F.amount, category_id: F.type === 'maaser' ? null : F.category_id, description: F.description, payment_method: F.payment_method, note: F.note, maaser_liable: F.maaser_liable, flag: F.flag || '', party: F.flag ? (($('#fParty')?.value) ?? F.party ?? '') : '' };
+  const body = { type: F.type, date: F.date, amount: +F.amount, category_id: F.type === 'maaser' ? null : F.category_id, description: F.description, payment_method: F.payment_method, note: F.note, maaser_liable: F.maaser_liable, remember_future: !!$('#fFuture')?.checked, flag: F.flag || '', party: F.flag ? (($('#fParty')?.value) ?? F.party ?? '') : '' };
   try {
     let id = F.id, msg = 'נשמר';
     if (id) { const r = await api('/api/tx/' + id, { method: 'PUT', body }); if (r.similar) msg = `נשמר, ועודכנו עוד ${r.similar} תנועות דומות`; }
