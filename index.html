@@ -226,6 +226,7 @@ async function loadYear() {
 }
 let BANK_BY_ID = {};
 async function reloadAll() {
+  S.cards = null;
   await loadBoot();
   if (S.boot.pending > 0) { try { await api('/api/bank/process', { method: 'POST' }); await loadBoot(); } catch (e) {} }
   await loadYear(); render();
@@ -269,7 +270,10 @@ function toggleSkipRec(k) { const l = skippedRec(); const i = l.indexOf(k); if (
 function showUpcoming() {
   const b = bankBalance(); if (!b) return;
   const u = upcomingRecurring(), sum = u.reduce((a, x) => a + x.r.amount, 0);
-  const cards = (S.boot.upcoming || []).map(x => `<div class="kv"><span>אשראי ${SRC_NAME[x.source] || x.source} ${esc(String(x.account).slice(-4))}<br><span class="muted">יורד ב-${gDate(x.first)} (${hDate(x.first)})</span></span><b>${M(-x.s)}</b></div>`).join('');
+  const later = (S.boot.upcoming || []).filter(x => !nextCycles().includes(x)).reduce((a, x) => a + x.s, 0);
+  const cards = nextCycles().map(x => `<div class="kv"><span>💳 ${esc(cardLabel(x.source, x.account))}<br><span class="muted">${x.n} עסקאות, יורד ב-${gDate(x.first)} (${hDate(x.first)})</span></span><b>${M(-x.s)}</b></div>`).join('')
+    + (later ? `<p class="muted">עוד ${M(-later)} באשראי (תשלומים) יירדו בחודשים שאחרי, ולא נכללים כאן.</p>` : '')
+    + `<button class="btn sm soft" style="margin:6px 0" onclick="closeModal();go('cards')">לכל עסקאות האשראי, לפי כרטיס וחודש</button>`;
   modal(`<div class="mh"><div class="r1"><h3>מה עוד יירד מהחשבון</h3><button class="x" onclick="closeModal()" aria-label="סגירה">×</button></div></div>
     <div class="mbd"><div class="kv"><span>בחשבון עכשיו</span><b>${M(b.total)}</b></div>
       ${cards}
@@ -279,6 +283,9 @@ function showUpcoming() {
       <div class="kv" style="font-size:17px"><span><b>אחרי הכול</b></span><b>${M(b.after - sum)}</b></div>
       <p class="muted">הוראות הקבע מזוהות לבד לפי מה שירד מהעו"ש בחודש האחרון (משכנתא, הלוואות, הוראות קבע), ונספרות שוב חודש אחרי. מה שיורד באשראי כבר נמצא בחיובי האשראי. אם משהו כאן לא חוזר כל חודש, לחץ ✕.</p></div>`);
 }
+// החיוב הקרוב של כל כרטיס (בלי תשלומים של חודשים רחוקים יותר)
+function nextCycles() { const seen = {}; return (S.boot.upcoming || []).filter(u => { const k = u.source + '|' + u.account; if (seen[k]) return false; seen[k] = 1; return true; }); }
+function cardLabel(src, acc) { const m = accMeta()[src + '|' + acc]; return (m && m.label) || `${SRC_NAME[src] || src} ${String(acc || '').slice(-4)}`; }
 function accMeta() { try { return JSON.parse(S.boot.settings.accounts_meta || '{}'); } catch { return {}; } }
 const accKey = a => a.source + '|' + a.account;
 function accLabel(a) { const m = accMeta()[accKey(a)]; return (m && m.label) || `${SRC_NAME[a.source] || a.source} ${String(a.account).slice(-4)}`; }
@@ -288,7 +295,7 @@ function bankBalance() {
   const isL = a => meta[accKey(a)] && meta[accKey(a)].ledger;
   const accs = all.filter(a => !a.savings && !isL(a)), sav = all.filter(a => a.savings), led = all.filter(a => !a.savings && isL(a));
   if (!accs.length && !led.length) return null;
-  const upcoming = (S.boot.upcoming || []).reduce((a, u) => a + u.s, 0);
+  const upcoming = nextCycles().reduce((a, u) => a + u.s, 0);
   const total = accs.reduce((a, x) => a + x.balance, 0);
   return { total, upcoming, after: total + upcoming, savings: sav.reduce((a, x) => a + x.balance, 0), hasSav: sav.length > 0,
     ledger: led, many: accs.length > 1 ? accs : null, upd: all.map(a => a.updated_at).sort().pop() };
@@ -302,7 +309,7 @@ function render() {
   if (!S.boot) { root.innerHTML = '<div class="login"><h1>כספי הבית</h1><p class="muted">טוען…</p></div>'; return; }
   const ms = yearMonths(S.hy);
   if (!S.month || !ms.includes(S.month)) { const cur = hMonth(todayIso()); S.month = ms.includes(cur) && hparts(todayIso()).y === S.hy ? cur : ms[0]; }
-  const views = { home: homeHTML, month: monthViewHTML, income: incomeViewHTML, reports: reportsHTML, list: listHTML, maaser: maaserHTML, check: checkHTML, obl: oblHTML, ledger: ledgerHTML, settings: settingsHTML };
+  const views = { home: homeHTML, month: monthViewHTML, income: incomeViewHTML, reports: reportsHTML, list: listHTML, maaser: maaserHTML, check: checkHTML, obl: oblHTML, ledger: ledgerHTML, cards: cardsHTML, settings: settingsHTML };
   const v = views[S.view] ? S.view : 'home';
   root.innerHTML = `<div class="wrap">${heroHTML(v === 'home')}${views[v]()}</div>
   <nav class="bn"><div class="in">
@@ -332,7 +339,7 @@ function heroHTML(full) {
   if (!full) return `<div class="hero" style="padding-bottom:14px">${top}${S.progress ? `<div class="upd">מעדכן מהבנק ${S.progress.percent}%</div>` : S.syncMsg ? `<div class="upd">${S.syncMsg}</div>` : ''}</div>`;
   const bal = b ? `<div class="bal-l">בחשבון עכשיו</div><div class="bal">${M0(b.total)}</div>
       ${b.many ? `<div class="upd" style="margin-top:2px">${b.many.map(a => `${esc(accLabel(a))}: ${M0(a.balance)}`).join(' | ')}</div>` : ''}
-      <div class="bal-sub" style="cursor:pointer" onclick="showUpcoming()" title="פירוט"><div>אשראי שעוד לא ירד<b class="num">₪${fmt0(-b.upcoming)}</b></div>${(() => { const u = upcomingRecurring(); const sum = u.reduce((a, x) => a + x.r.amount, 0);
+      <div class="bal-sub" style="cursor:pointer" onclick="showUpcoming()" title="פירוט"><div onclick="event.stopPropagation();go('cards')" title="פירוט כרטיסי האשראי" style="text-decoration:underline dotted">אשראי שעוד לא ירד<b class="num">₪${fmt0(-b.upcoming)}</b></div>${(() => { const u = upcomingRecurring(); const sum = u.reduce((a, x) => a + x.r.amount, 0);
         return sum ? `<div>הוראות קבע עד ${gDate(u.end)}<b class="num">₪${fmt0(sum)}</b></div><div>אחרי האשראי וההוראות<b>${M0(b.after - sum)}</b></div>` : `<div>אחרי האשראי<b>${M0(b.after)}</b></div>`; })()}${b.hasSav ? `<div>בחסכונות<b>${M0(b.savings)}</b></div>` : ''}${b.ledger.map(a => `<div>${esc(accLabel(a))} (הפקדות)<b>${M0(a.balance)}</b></div>`).join('')}${cashKnown() ? `<div>מזומן<b>${M0(cashStatus().wallet)}</b></div>` : ''}</div>
       ${S.progress ? progressHTML() : `<div class="upd">${S.syncMsg ? S.syncMsg : 'עודכן ' + ago(b.upd)}</div>`}`
     : `<div class="bal-l">בחשבון עכשיו</div><div style="font-size:20px;font-weight:700;margin-top:4px">לחץ על כפתור העדכון כדי לראות את היתרה</div>${S.progress ? progressHTML() : S.syncMsg ? `<div class="upd">${S.syncMsg}</div>` : ''}`;
@@ -371,7 +378,7 @@ function incomeViewHTML() {
   <button class="btn" style="width:100%;margin-bottom:12px;background:var(--pos)" onclick="openTx({type:'income'})">+ רישום הכנסה</button>
   ${safe(() => monthIncomeHTML(inMonth(S.txs, S.month)))}${safe(() => incomesPanel())}`;
 }
-const APP_VERSION = '30.10.26-ד';
+const APP_VERSION = '01.11.26-א';
 function safe(fn) { try { return fn(); } catch (e) { console.error(e); return `<div class="panel"><div class="muted">שגיאה בהצגת החלק הזה: ${esc(e.message)}</div></div>`; } }
 function monthIncomeHTML(list) {
   const inc = list.filter(t => t.type === 'income' && !t.flag).sort((a, b) => a.date.localeCompare(b.date));
@@ -437,7 +444,8 @@ function rowHTML(t) {
   const c = catById(t.category_id);
   const icon = t.type === 'maaser' ? '🪙' : (c?.icon || (t.type === 'income' ? '+' : '•'));
   const bg = t.type === 'maaser' ? 'var(--maa-soft)' : (c?.color || '#94A3B8') + '1F';
-  const sub = [t.type === 'maaser' ? 'מעשרות' : c?.name, t.payment_method].filter(Boolean).map(esc).join(' | ');
+  const pay = t.bsrc && CARD_SOURCES.includes(t.bsrc) ? '💳 ' + cardLabel(t.bsrc, t.bacc) : t.payment_method;
+  const sub = [t.type === 'maaser' ? 'מעשרות' : c?.name, pay].filter(Boolean).map(esc).join(' | ');
   const ft = t.flag ? `<span class="flagtag">${t.flag === 'lent' ? 'חוב' : 'פיקדון'}${t.party ? ': ' + esc(t.party) : ''}</span>` : '';
   return `<div class="row ${t.type}${t.flag ? ' flagged' : ''}" onclick="openTx(${t.id})"><div class="ic" style="background:${bg}">${icon}</div>
     <div style="min-width:0"><div class="n">${esc(t.description || TYPE_LABEL[t.type])}${t.has_receipt ? ' 📎' : ''}${ft}</div><div class="s">${t.note ? '📝 ' + esc(t.note) + ' | ' : ''}${sub}</div></div>
@@ -606,6 +614,45 @@ function showAccDetails() {
       : '<p class="muted" style="margin-top:12px">עוד לא נכתבו פרטים. בהגדרות, תחת "חשבונות בנק", כותבים לכל חשבון את הפרטים (בנק, סניף, מספר חשבון, שם בעל החשבון).</p>'}</div>`);
 }
 async function copyAcc(i) { const t = $('#accd' + i).innerText; try { await navigator.clipboard.writeText(t); toast('הועתק'); } catch { const r = document.createRange(); r.selectNode($('#accd' + i)); getSelection().removeAllRanges(); getSelection().addRange(r); toast('סמן והעתק עם Ctrl+C'); } }
+
+// ---------- כרטיסי אשראי: לפי כרטיס ולפי חיוב ----------
+async function loadCards() {
+  const f = new Date(); f.setDate(f.getDate() - 220); const t = new Date(); t.setDate(t.getDate() + 75);
+  S.cards = (await api(`/api/bank?from=${dateToIso(f)}&to=${dateToIso(t)}`)).items.filter(b => CARD_SOURCES.includes(b.source));
+}
+function cardsHTML() {
+  if (!S.cards) { loadCards().then(() => S.view === 'cards' && render()).catch(e => toast(e.message)); return '<div class="panel"><div class="empty">טוען את עסקאות האשראי…</div></div>'; }
+  const keys = [...new Set(S.cards.map(b => b.source + '|' + b.account))];
+  const sel = keys.includes(S.cardSel) ? S.cardSel : 'all';
+  const list = S.cards.filter(b => sel === 'all' || b.source + '|' + b.account === sel);
+  const cyc = b => b.processed_date || b.date;
+  const cycles = [...new Set(list.map(cyc))].sort();
+  const today = todayIso();
+  if (!S.cycle || !cycles.includes(S.cycle)) S.cycle = cycles.find(d => d > today) || cycles[cycles.length - 1];
+  const items = list.filter(b => cyc(b) === S.cycle).sort((a, b) => b.date.localeCompare(a.date));
+  const total = items.reduce((a, b) => a - b.amount, 0);
+  const past = S.cycle && S.cycle <= today;
+  // החיוב בעו"ש באותו תאריך (±3 ימים)
+  const bills = (S.bank || []).concat([]).filter(b => b.kind === 'card_bill' && S.cycle && Math.abs((isoToDate(b.date) - isoToDate(S.cycle)) / 864e5) <= 3);
+  const byCat = {}; items.filter(b => b.amount < 0).forEach(b => { const k = b.ttype === 'maaser' ? 'מעשרות' : (catById(b.tcat)?.name || 'ללא'); byCat[k] = (byCat[k] || 0) - b.amount; });
+  const chip = (k, l) => `<button class="mt ${sel === k ? 'on' : ''}" onclick="S.cardSel='${k}';S.cycle=null;render()">${esc(l)}</button>`;
+  return `<div class="panel"><div class="ph"><h2>💳 כרטיסי אשראי</h2><button class="l" onclick="go('home')">חזרה</button></div>
+    <div class="months" style="margin:0 -16px 6px">${chip('all', 'כל הכרטיסים')}${keys.map(k => chip(k, cardLabel(...k.split('|')))).join('')}</div>
+    <div class="muted" style="margin-bottom:4px">בחר חיוב:</div>
+    <div class="months" style="margin:0 -16px">${cycles.slice().reverse().map(d => `<button class="mt ${d === S.cycle ? 'on' : ''}" onclick="S.cycle='${d}';render()">${d > today ? 'יורד' : 'ירד'} ${gDate(d)}</button>`).join('')}</div></div>
+  ${S.cycle ? `<div class="panel"><div class="ph"><h2>${past ? 'ירד' : 'יירד'} ב-${gDate(S.cycle)} (${hDate(S.cycle)})</h2><b>${M(total)}</b></div>
+    <div class="muted">${items.length} עסקאות${sel === 'all' ? ', כל הכרטיסים' : ', ' + esc(cardLabel(...sel.split('|')))}${bills.length ? `. בעו"ש ירד באותו תאריך: ${bills.map(b => `${esc(b.description)} ${M(-b.amount)}`).join(', ')}` : ''}</div>
+    ${Object.keys(byCat).length ? `<div style="margin:8px 0">${Object.entries(byCat).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<span class="tag gr" style="margin:2px">${esc(k)} ${M0(v)}</span>`).join('')}</div>` : ''}
+    ${items.map(b => { const c = catById(b.tcat); return `<div class="row ${b.ttype || 'expense'}" onclick="${b.tx_id ? `openTxAny(${b.tx_id})` : ''}"><div class="ic" style="background:${b.ttype === 'maaser' ? 'var(--maa-soft)' : (c?.color || '#94A3B8') + '1F'}">${b.ttype === 'maaser' ? '🪙' : (c?.icon || '•')}</div>
+      <div style="min-width:0"><div class="n">${esc(b.tdesc || b.description)}${b.tflag ? '<span class="flagtag">' + (b.tflag === 'lent' ? 'חוב' : 'פיקדון') + '</span>' : ''}</div><div class="s">${hDate(b.date)} (${gDate(b.date)}) | ${esc(b.ttype === 'maaser' ? 'מעשרות' : c?.name || '')}${sel === 'all' ? ' | 💳 ' + esc(cardLabel(b.source, b.account)) : ''}</div></div>
+      <div class="a num">${b.amount < 0 ? '−' : '+'}₪${fmt(Math.abs(b.amount))}</div></div>`; }).join('') || '<div class="empty">אין עסקאות</div>'}</div>` : '<div class="panel"><div class="empty">אין עדיין עסקאות אשראי</div></div>'}`;
+}
+async function openTxAny(id) {
+  if (S.txs.find(x => x.id === id)) return openTx(id);
+  const r = (S.recent || []).find(x => x.id === id) || (S.flagged || []).find(x => x.id === id);
+  if (r) { S.txs.push(r); return openTx(id); }
+  toast('התנועה בשנה אחרת. עבור לשנה שלה כדי לערוך אותה');
+}
 
 // ---------- בדיקה ----------
 function cardMatch(bill) {
