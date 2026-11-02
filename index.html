@@ -348,7 +348,7 @@ function showUpcoming() {
   const ei = expInc(), eb = ei.filter(x => incToBank(x.r)).reduce((a, x) => a + x.r.amount, 0);
   const nc = nextCycles(), inc = new Set(nc.map(x => x.source + x.account + x.first));
   const later = cycleStatus().filter(x => !x.paid && x.first > todayIso() && !inc.has(x.source + x.account + x.first)).reduce((a, x) => a + x.s, 0);
-  const cards = nc.map(x => `<div class="kv"><span>💳 ${esc(cardLabel(x.source, x.account))}<br><span class="muted">${x.n} עסקאות, ${x.overdue ? `היה אמור לרדת ב-${gDate(x.first)}, עוד לא ירד מהבנק` : `יורד ב-${gDate(x.first)} (${hDate(x.first)})`}</span></span><b>${M(-x.s)}</b></div>`).join('')
+  const cards = nc.map(x => `<div class="kv"><span>💳 ${esc(cardLabel(x.source, x.account))}<br><span class="muted">${x.n} עסקאות, ${x.overdue ? `היה אמור לרדת ב-${gDate(x.first)}, עוד לא ירד מהבנק` : `יורד ב-${gDate(x.first)} (${hDate(x.first)})`}</span></span><span style="display:flex;gap:8px;align-items:center"><b>${M(-x.s)}</b>${x.overdue ? `<button class="btn sm soft" onclick="markPaid('${esc(x.source + '|' + x.account + '|' + x.first)}')" title="כבר ירד מהבנק">ירד ✓</button>` : ''}</span></div>`).join('')
     + (later ? `<p class="muted">עוד ${M(-later)} באשראי יירדו מהחודש הבא והלאה, ולא נכללים כאן.</p>` : '')
     + `<button class="btn sm soft" style="margin:6px 0" onclick="closeModal();go('cards')">לכל עסקאות האשראי, לפי כרטיס וחודש</button>`;
   modal(`<div class="mh"><div class="r1"><h3>עד סוף החודש (${gDate(monthEnd())})</h3><button class="x" onclick="closeModal()" aria-label="סגירה">×</button></div></div>
@@ -370,10 +370,21 @@ function cycleStatus() {
   const eq = (bill, tot) => Math.abs(-bill.amount - tot) <= Math.max(1, Math.abs(tot) * 0.01);
   const cyc = (S.boot.upcoming || []).map(u => ({ ...u }));
   cyc.forEach(c => { const b = bills.find(b => !used.has(b.id) && near(b.date, c.first) && eq(b, -c.s)); if (b) { used.add(b.id); c.paid = b; } });
-  const byDate = {}; cyc.filter(c => !c.paid).forEach(c => (byDate[c.first] = byDate[c.first] || []).push(c));
-  Object.entries(byDate).forEach(([d, l]) => { if (l.length < 2) return; const tot = l.reduce((a, c) => a - c.s, 0); const b = bills.find(b => !used.has(b.id) && near(b.date, d) && eq(b, tot)); if (b) { used.add(b.id); l.forEach(c => c.paid = b); } });
+  // חיוב אחד בבנק שמאחד כמה כרטיסים: מחפשים איזה צירוף של חיובי כרטיסים (סביב אותו תאריך) מסתכם בדיוק בסכום שירד
+  bills.filter(b => !used.has(b.id)).forEach(b => {
+    const cand = cyc.filter(c => !c.paid && near(b.date, c.first)).slice(0, 10);
+    let best = null;
+    for (let mask = 1; mask < (1 << cand.length); mask++) {
+      const sub = cand.filter((_, i) => mask & (1 << i)); if (sub.length < 2) continue;
+      if (eq(b, sub.reduce((a, c) => a - c.s, 0)) && (!best || sub.length < best.length)) best = sub;
+    }
+    if (best) { used.add(b.id); best.forEach(c => c.paid = b); }
+  });
+  const man = paidMan(); cyc.forEach(c => { if (!c.paid && man.includes(c.source + '|' + c.account + '|' + c.first)) c.paid = { manual: true }; });
   return cyc;
 }
+function paidMan() { try { return JSON.parse(localStorage.getItem('kb_paidcyc') || '[]'); } catch { return []; } }
+function markPaid(k) { const l = paidMan(); if (!l.includes(k)) l.push(k); lsSet('kb_paidcyc', JSON.stringify(l.slice(-60))); render(); showUpcoming(); toast('סומן שירד'); }
 function nextCycles() {
   const today = todayIso(), out = [], future = {};
   cycleStatus().forEach(c => { if (c.paid) return; const k = c.source + '|' + c.account;
@@ -480,7 +491,7 @@ function incomeViewHTML() {
   <button class="btn" style="width:100%;margin-bottom:12px;background:var(--pos)" onclick="openTx({type:'income'})">+ רישום הכנסה</button>
   ${safe(() => incRecPanel())}${safe(() => monthIncomeHTML(inMonth(S.txs, S.month)))}${safe(() => incomesPanel())}`;
 }
-const APP_VERSION = '03.11.26-ג';
+const APP_VERSION = '03.11.26-ד';
 function safe(fn) { try { return fn(); } catch (e) { console.error(e); return `<div class="panel"><div class="muted">שגיאה בהצגת החלק הזה: ${esc(e.message)}</div></div>`; } }
 function monthIncomeHTML(list) {
   const inc = list.filter(t => t.type === 'income' && !t.flag).sort((a, b) => a.date.localeCompare(b.date));
