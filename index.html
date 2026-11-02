@@ -266,12 +266,87 @@ function upcomingRecurring(days = 30) {
   items.end = dateToIso(end);
   return items;
 }
+// ---------- הכנסות קבועות (בערך) ----------
+const INC_PM = ['העברה לבנק', 'מזומן', 'צ\'ק', 'אחר'];
+const incRecs = () => (S.boot.recurring || []).filter(r => r.kind === 'income' && r.active !== 0);
+const incToBank = r => r.payment_method !== 'מזומן';
+function occOf(r, y, m) { const last = new Date(y, m + 1, 0).getDate(); return dateToIso(new Date(y, m, Math.min(r.day || 1, last), 12)); }
+function incPool() { const seen = new Set(), out = []; (S.txs || []).concat(S.recent || []).forEach(t => { if (t.type === 'income' && !t.flag && !seen.has(t.id)) { seen.add(t.id); out.push(t); } }); return out; }
+// מוצא את ההכנסה שהגיעה בפועל: לפי שם / מילות זיהוי, ואם אין, לפי סכום קרוב (עד 20%). עד 10 ימים לפני או אחרי התאריך
+function incMatch(r, occ, pool, used) {
+  const keys = [r.name].concat(String(r.note || '').split(/[,،]/)).map(x => x.trim()).filter(x => x.length > 1);
+  const near = pool.filter(t => !used.has(t.id) && Math.abs((isoToDate(t.date) - isoToDate(occ)) / 864e5) <= 10);
+  const txt = t => (t.description || '') + ' ' + (t.note || '');
+  let hit = near.filter(t => keys.some(k => txt(t).includes(k)));
+  if (!hit.length) hit = near.filter(t => Math.abs(t.amount - r.amount) <= r.amount * 0.2 && (t.payment_method === 'מזומן') === (r.payment_method === 'מזומן'));
+  hit.sort((a, b) => Math.abs(isoToDate(a.date) - isoToDate(occ)) - Math.abs(isoToDate(b.date) - isoToDate(occ)));
+  if (hit[0]) used.add(hit[0].id);
+  return hit[0] || null;
+}
+// מצב כל הכנסה קבועה: 3 חודשים אחרונים + החודש הבא
+function incStatus() {
+  const pool = incPool(), used = new Set(), t = new Date(), today = todayIso();
+  return incRecs().map(r => {
+    const occs = [-2, -1, 0, 1].map(k => { const d = new Date(t.getFullYear(), t.getMonth() + k, 1); const occ = occOf(r, d.getFullYear(), d.getMonth()); return { occ, tx: incMatch(r, occ, pool, used) }; });
+    occs.forEach(o => { const late = (isoToDate(today) - isoToDate(o.occ)) / 864e5;
+      o.st = o.tx ? 'got' : late > 10 ? 'miss' : late > 0 ? 'late' : 'wait'; });
+    return { r, occs };
+  });
+}
+// הכנסות שעוד צפויות להיכנס ב-30 הימים הקרובים (כולל כאלה שמתאחרות עד 10 ימים). כל הכנסה נספרת פעם אחת
+function expectedIncomes(days = 30) {
+  const end = new Date(); end.setDate(end.getDate() + days); const endIso = dateToIso(end);
+  const out = []; incStatus().forEach(({ r, occs }) => { const o = occs.find(o => (o.st === 'wait' || o.st === 'late') && o.occ <= endIso); if (o) out.push({ r, occ: o.occ, late: o.st === 'late' }); }); // אחת לכל הכנסה, הקרובה
+  out.sort((a, b) => a.occ.localeCompare(b.occ)); out.end = endIso; return out;
+}
+function expInc() { try { return expectedIncomes(); } catch (e) { console.error(e); return []; } }
+function incRecPanel() {
+  const st = incStatus(), today = todayIso();
+  const mon = iso => ['ינו׳', 'פבר׳', 'מרץ', 'אפר׳', 'מאי', 'יוני', 'יולי', 'אוג׳', 'ספט׳', 'אוק׳', 'נוב׳', 'דצמ׳'][+iso.slice(5, 7) - 1];
+  const chip = o => { const c = { got: ['var(--pos)', '✓'], late: ['#C77700', '⏳'], miss: ['var(--neg)', '✗'], wait: ['var(--muted)', '…'] }[o.st];
+    return `<span title="${o.tx ? esc(o.tx.description || '') + ' ' + gDate(o.tx.date) : gDate(o.occ)}" style="display:inline-block;margin-inline-end:10px;font-size:13px;color:${c[0]}">${mon(o.occ)} ${c[1]}${o.tx ? ' ' + fmt0(o.tx.amount) : ''}</span>`; };
+  const exp = expectedIncomes(), bank = exp.filter(x => incToBank(x.r)).reduce((a, x) => a + x.r.amount, 0), cash = exp.filter(x => !incToBank(x.r)).reduce((a, x) => a + x.r.amount, 0);
+  const rows = st.map(({ r, occs }) => { const cur = occs.find(o => o.occ.slice(0, 7) === today.slice(0, 7));
+    const line = cur.st === 'got' ? `נכנס ${M(cur.tx.amount)} ב-${gDate(cur.tx.date)}` : cur.st === 'wait' ? `צפוי ב-${gDate(cur.occ)} (${hDate(cur.occ)})` : cur.st === 'late' ? `היה אמור להיכנס ב-${gDate(cur.occ)}, עוד לא נכנס` : `לא נכנס החודש (היה אמור ב-${gDate(cur.occ)})`;
+    return `<div class="ob" onclick="openIncRec(${r.id})"><div style="min-width:0"><div class="n">${esc(r.name)}</div><div class="s">${esc(r.payment_method || '')}, ב-${r.day} לחודש. ${line}</div><div style="margin-top:4px">${occs.slice(0, 3).map(chip).join('')}</div></div>
+      <div style="text-align:left"><div class="a num">₪${fmt0(r.amount)}</div><div class="s">בערך</div></div></div>`; }).join('');
+  const sug = incSuggest();
+  return `<div class="panel"><div class="ph"><h2>הכנסות קבועות</h2><button class="l" onclick="openIncRec()">+ הוספה</button></div>
+    ${st.length ? `<div class="totals"><div>בחודש, בערך<b class="num">₪${fmt0(st.reduce((a, x) => a + x.r.amount, 0))}</b></div><div>עוד צפוי לחשבון<b class="num">₪${fmt0(bank)}</b></div>${cash ? `<div>עוד צפוי במזומן<b class="num">₪${fmt0(cash)}</b></div>` : ''}</div>${rows}
+      <p class="muted" style="margin:8px 0 0">המערכת בודקת לבד אם ההכנסה נכנסה: לפי השם או מילות הזיהוי בתיאור התנועה, ואם אין, לפי סכום קרוב, עד 10 ימים מהתאריך. ✓ נכנס, ⏳ מתאחר, ✗ לא נכנס.</p>`
+    : '<div class="empty">עוד לא הוגדרו הכנסות קבועות. הוסף משכורת, שכר דירה, קצבאות וכדומה, עם סכום משוער, ותראה במסך החשבון כמה צפוי להיות אחרי שייכנסו.</div>'}
+    ${sug.length ? `<div class="muted" style="margin-top:10px">נראה שחוזרות כל חודש: ${sug.map((x, i) => `<a href="#" onclick="openIncRec(null,${i});return false">${esc(x.description)} (₪${fmt0(x.amount)})</a>`).join(', ')}. לחיצה מוסיפה.</div>` : ''}</div>`;
+}
+// הצעות: הכנסה עם אותו תיאור שנכנסה בשני חודשים שונים לפחות, ועוד לא מוגדרת
+function incSuggest() {
+  const have = incRecs().map(r => [r.name].concat(String(r.note || '').split(','))).flat().map(x => x.trim()).filter(Boolean);
+  const by = {}; incPool().forEach(t => { const d = (t.description || '').trim(); if (!d || have.some(k => d.includes(k))) return; (by[d] = by[d] || []).push(t); });
+  return S._incSug = Object.entries(by).filter(([, l]) => new Set(l.map(t => t.date.slice(0, 7))).size >= 2).map(([d, l]) => { l.sort((a, b) => b.date.localeCompare(a.date)); return { description: d, amount: l[0].amount, day: +l[0].date.slice(8, 10), pm: l[0].payment_method === 'מזומן' ? 'מזומן' : 'העברה לבנק' }; }).slice(0, 6);
+}
+function openIncRec(id, sugI) {
+  const r = id ? S.boot.recurring.find(x => x.id === id) : null, sg = sugI != null ? (S._incSug || [])[sugI] : null;
+  R = r ? { ...r } : { id: null, kind: 'income', name: sg ? sg.description : '', amount: sg ? sg.amount : '', day: sg ? sg.day : 1, payment_method: sg ? sg.pm : 'העברה לבנק', note: '' };
+  modal(`<div class="mh"><div class="r1"><h3>${R.id ? 'עריכת הכנסה קבועה' : 'הכנסה קבועה חדשה'}</h3><button class="x" onclick="closeModal()" aria-label="סגירה">×</button></div></div>
+    <div class="mbd"><label class="f">שם ההכנסה</label><input id="iN" value="${esc(R.name)}" placeholder="למשל: משכורת, שכר דירה">
+      <div style="display:flex;gap:10px"><div style="flex:1"><label class="f">סכום בערך</label><input id="iA" type="number" inputmode="decimal" step="0.01" value="${esc(R.amount)}"></div><div style="flex:1"><label class="f">יום בחודש</label><input id="iD" type="number" min="1" max="31" value="${esc(R.day)}"></div></div>
+      <label class="f">איך מגיע</label><select id="iP">${INC_PM.map(x => `<option ${R.payment_method === x ? 'selected' : ''}>${x}</option>`).join('')}</select>
+      <label class="f">מילים לזיהוי בתנועות (לא חובה, מופרדות בפסיק)</label><input id="iK" value="${esc(R.note || '')}" placeholder="למשל: שם המעסיק כמו שמופיע בבנק">
+      <p class="muted">מה שמגיע במזומן לא נכנס לצפי של החשבון בבנק, אלא מוצג בנפרד.</p>
+      <div class="mfoot"><button class="btn" onclick="saveIncRec()">שמירה</button>${R.id ? `<button class="btn red" onclick="delRec()">מחיקה</button>` : ''}</div></div>`);
+}
+async function saveIncRec() {
+  const b = { kind: 'income', name: $('#iN').value.trim(), amount: +$('#iA').value, day: +$('#iD').value || 1, payment_method: $('#iP').value, note: $('#iK').value.trim(), category_id: null, active: 1 };
+  if (!b.name || !b.amount) return toast('צריך שם וסכום');
+  try { if (R.id) await api('/api/recurring/' + R.id, { method: 'PUT', body: b }); else await api('/api/recurring', { method: 'POST', body: b }); closeModal(); await loadBoot(); render(); toast('נשמר'); } catch (e) { toast(e.message); }
+}
 function toggleSkipRec(k) { const l = skippedRec(); const i = l.indexOf(k); if (i >= 0) l.splice(i, 1); else l.push(k); lsSet('kb_skiprec', JSON.stringify(l)); render(); showUpcoming(); }
 function showUpcoming() {
   const b = bankBalance(); if (!b) return;
   const u = upcomingRecurring(), sum = u.reduce((a, x) => a + x.r.amount, 0);
-  const later = (S.boot.upcoming || []).filter(x => !nextCycles().includes(x)).reduce((a, x) => a + x.s, 0);
-  const cards = nextCycles().map(x => `<div class="kv"><span>💳 ${esc(cardLabel(x.source, x.account))}<br><span class="muted">${x.n} עסקאות, יורד ב-${gDate(x.first)} (${hDate(x.first)})</span></span><b>${M(-x.s)}</b></div>`).join('')
+  const ei = expInc(), eb = ei.filter(x => incToBank(x.r)).reduce((a, x) => a + x.r.amount, 0);
+  const nc = nextCycles(), inc = new Set(nc.map(x => x.source + x.account + x.first));
+  const later = cycleStatus().filter(x => !x.paid && x.first > todayIso() && !inc.has(x.source + x.account + x.first)).reduce((a, x) => a + x.s, 0);
+  const cards = nc.map(x => `<div class="kv"><span>💳 ${esc(cardLabel(x.source, x.account))}<br><span class="muted">${x.n} עסקאות, ${x.overdue ? `היה אמור לרדת ב-${gDate(x.first)}, עוד לא ירד מהבנק` : `יורד ב-${gDate(x.first)} (${hDate(x.first)})`}</span></span><b>${M(-x.s)}</b></div>`).join('')
     + (later ? `<p class="muted">עוד ${M(-later)} באשראי (תשלומים) יירדו בחודשים שאחרי, ולא נכללים כאן.</p>` : '')
     + `<button class="btn sm soft" style="margin:6px 0" onclick="closeModal();go('cards')">לכל עסקאות האשראי, לפי כרטיס וחודש</button>`;
   modal(`<div class="mh"><div class="r1"><h3>מה עוד יירד מהחשבון</h3><button class="x" onclick="closeModal()" aria-label="סגירה">×</button></div></div>
@@ -281,10 +356,33 @@ function showUpcoming() {
         <span style="display:flex;gap:8px;align-items:center"><b>${M(x.r.amount)}</b><button class="btn sm soft" onclick="toggleSkipRec('${esc(skipKey(x.src)).replace(/'/g, '')}')" title="לא לכלול">✕</button></span></div>`).join('')}
       ${skippedRec().length ? `<p class="muted">הוצאו ידנית: ${skippedRec().map(k => `<a href="#" onclick="toggleSkipRec('${esc(k).replace(/'/g, '')}');return false">${esc(k.split('|')[0])} ₪${esc(k.split('|')[1])} (להחזיר)</a>`).join(', ')}</p>` : ''}
       <div class="kv" style="font-size:17px"><span><b>אחרי הכול</b></span><b>${M(b.after - sum)}</b></div>
+      ${ei.length ? `<div class="kv" style="margin-top:6px"><span><b>הכנסות שעוד צפויות</b></span><span></span></div>${ei.map(x => `<div class="kv"><span>⬆ ${esc(x.r.name)}<br><span class="muted">${x.late ? `היה אמור להיכנס ב-${gDate(x.occ)}, עוד לא נכנס` : `ב-${gDate(x.occ)} (${hDate(x.occ)})`}${incToBank(x.r) ? '' : ', במזומן, לא לחשבון'}</span></span><b style="color:${incToBank(x.r) ? 'var(--pos)' : 'var(--muted)'}">${M(x.r.amount)}</b></div>`).join('')}
+      <div class="kv" style="font-size:17px"><span><b>משוער אחרי ההכנסות</b></span><b>${M(b.after - sum + eb)}</b></div>
+      <p class="muted">ההכנסות הן לפי הסכום המשוער שהגדרת בלשונית "הכנסות". כשההכנסה נכנסת בפועל היא יוצאת מכאן לבד.</p>` : `<p class="muted">אפשר להגדיר הכנסות קבועות בלשונית "הכנסות", ואז יופיע כאן כמה משוער שיהיה אחרי שייכנסו.</p>`}
       <p class="muted">הוראות הקבע מזוהות לבד לפי מה שירד מהעו"ש בחודש האחרון (משכנתא, הלוואות, הוראות קבע), ונספרות שוב חודש אחרי. מה שיורד באשראי כבר נמצא בחיובי האשראי. אם משהו כאן לא חוזר כל חודש, לחץ ✕.</p></div>`);
 }
 // החיוב הקרוב של כל כרטיס (בלי תשלומים של חודשים רחוקים יותר)
-function nextCycles() { const seen = {}; return (S.boot.upcoming || []).filter(u => { const k = u.source + '|' + u.account; if (seen[k]) return false; seen[k] = 1; return true; }); }
+// חיוב אשראי נחשב "ירד" רק כשהחיוב שלו הופיע בעו"ש (אותו סכום, עד 5 ימים מהתאריך). עד אז הוא עדיין נספר כ"עוד לא ירד"
+function cycleStatus() {
+  const bills = S.boot.bills || [], used = new Set(), near = (a, b) => Math.abs((isoToDate(a) - isoToDate(b)) / 864e5) <= 5;
+  const eq = (bill, tot) => Math.abs(-bill.amount - tot) <= Math.max(1, Math.abs(tot) * 0.01);
+  const cyc = (S.boot.upcoming || []).map(u => ({ ...u }));
+  cyc.forEach(c => { const b = bills.find(b => !used.has(b.id) && near(b.date, c.first) && eq(b, -c.s)); if (b) { used.add(b.id); c.paid = b; } });
+  const byDate = {}; cyc.filter(c => !c.paid).forEach(c => (byDate[c.first] = byDate[c.first] || []).push(c));
+  Object.entries(byDate).forEach(([d, l]) => { if (l.length < 2) return; const tot = l.reduce((a, c) => a - c.s, 0); const b = bills.find(b => !used.has(b.id) && near(b.date, d) && eq(b, tot)); if (b) { used.add(b.id); l.forEach(c => c.paid = b); } });
+  return cyc;
+}
+function nextCycles() {
+  const today = todayIso(), out = [], future = {};
+  cycleStatus().forEach(c => { if (c.paid) return; const k = c.source + '|' + c.account;
+    if (c.first <= today) { c.overdue = true; out.push(c); } else if (!future[k]) { future[k] = 1; out.push(c); } });
+  return out;
+}
+function cycleLabel(src, acc, d) { // לתוויות במסך הכרטיסים
+  if (d > todayIso()) return 'יורד';
+  const c = cycleStatus().find(c => c.source === src && c.account === acc && c.first === d);
+  return c && !c.paid ? 'עוד לא ירד' : 'ירד';
+}
 function cardLabel(src, acc) { const m = accMeta()[src + '|' + acc]; return (m && m.label) || `${SRC_NAME[src] || src} ${String(acc || '').slice(-4)}`; }
 function accMeta() { try { return JSON.parse(S.boot.settings.accounts_meta || '{}'); } catch { return {}; } }
 const accKey = a => a.source + '|' + a.account;
@@ -340,7 +438,9 @@ function heroHTML(full) {
   const bal = b ? `<div class="bal-l">בחשבון עכשיו</div><div class="bal">${M0(b.total)}</div>
       ${b.many ? `<div class="upd" style="margin-top:2px">${b.many.map(a => `${esc(accLabel(a))}: ${M0(a.balance)}`).join(' | ')}</div>` : ''}
       <div class="bal-sub" style="cursor:pointer" onclick="showUpcoming()" title="פירוט"><div onclick="event.stopPropagation();go('cards')" title="פירוט כרטיסי האשראי" style="text-decoration:underline dotted">אשראי שעוד לא ירד<b class="num">₪${fmt0(-b.upcoming)}</b></div>${(() => { const u = upcomingRecurring(); const sum = u.reduce((a, x) => a + x.r.amount, 0);
-        return sum ? `<div>הוראות קבע עד ${gDate(u.end)}<b class="num">₪${fmt0(sum)}</b></div><div>אחרי האשראי וההוראות<b>${M0(b.after - sum)}</b></div>` : `<div>אחרי האשראי<b>${M0(b.after)}</b></div>`; })()}${b.hasSav ? `<div>בחסכונות<b>${M0(b.savings)}</b></div>` : ''}${b.ledger.map(a => `<div>${esc(accLabel(a))} (הפקדות)<b>${M0(a.balance)}</b></div>`).join('')}${cashKnown() ? `<div>מזומן<b>${M0(cashStatus().wallet)}</b></div>` : ''}</div>
+        const ei = expInc(), eb = ei.filter(x => incToBank(x.r)).reduce((a, x) => a + x.r.amount, 0);
+        return (sum ? `<div>הוראות קבע עד ${gDate(u.end)}<b class="num">₪${fmt0(sum)}</b></div><div>אחרי האשראי וההוראות<b>${M0(b.after - sum)}</b></div>` : `<div>אחרי האשראי<b>${M0(b.after)}</b></div>`)
+          + (eb ? `<div>הכנסות צפויות<b class="num">₪${fmt0(eb)}</b></div><div style="font-weight:700">משוער אחרי ההכנסות<b>${M0(b.after - sum + eb)}</b></div>` : ''); })()}${b.hasSav ? `<div>בחסכונות<b>${M0(b.savings)}</b></div>` : ''}${b.ledger.map(a => `<div>${esc(accLabel(a))} (הפקדות)<b>${M0(a.balance)}</b></div>`).join('')}${cashKnown() ? `<div>מזומן<b>${M0(cashStatus().wallet)}</b></div>` : ''}</div>
       ${S.progress ? progressHTML() : `<div class="upd">${S.syncMsg ? S.syncMsg : 'עודכן ' + ago(b.upd)}</div>`}`
     : `<div class="bal-l">בחשבון עכשיו</div><div style="font-size:20px;font-weight:700;margin-top:4px">לחץ על כפתור העדכון כדי לראות את היתרה</div>${S.progress ? progressHTML() : S.syncMsg ? `<div class="upd">${S.syncMsg}</div>` : ''}`;
   return `<div class="hero">${top}${bal}</div>`;
@@ -376,9 +476,9 @@ function monthViewHTML() {
 function incomeViewHTML() {
   return `${yearLine()}${monthsStrip()}
   <button class="btn" style="width:100%;margin-bottom:12px;background:var(--pos)" onclick="openTx({type:'income'})">+ רישום הכנסה</button>
-  ${safe(() => monthIncomeHTML(inMonth(S.txs, S.month)))}${safe(() => incomesPanel())}`;
+  ${safe(() => incRecPanel())}${safe(() => monthIncomeHTML(inMonth(S.txs, S.month)))}${safe(() => incomesPanel())}`;
 }
-const APP_VERSION = '01.11.26-א';
+const APP_VERSION = '03.11.26-ב';
 function safe(fn) { try { return fn(); } catch (e) { console.error(e); return `<div class="panel"><div class="muted">שגיאה בהצגת החלק הזה: ${esc(e.message)}</div></div>`; } }
 function monthIncomeHTML(list) {
   const inc = list.filter(t => t.type === 'income' && !t.flag).sort((a, b) => a.date.localeCompare(b.date));
@@ -639,8 +739,8 @@ function cardsHTML() {
   return `<div class="panel"><div class="ph"><h2>💳 כרטיסי אשראי</h2><button class="l" onclick="go('home')">חזרה</button></div>
     <div class="months" style="margin:0 -16px 6px">${chip('all', 'כל הכרטיסים')}${keys.map(k => chip(k, cardLabel(...k.split('|')))).join('')}</div>
     <div class="muted" style="margin-bottom:4px">בחר חיוב:</div>
-    <div class="months" style="margin:0 -16px">${cycles.slice().reverse().map(d => `<button class="mt ${d === S.cycle ? 'on' : ''}" onclick="S.cycle='${d}';render()">${d > today ? 'יורד' : 'ירד'} ${gDate(d)}</button>`).join('')}</div></div>
-  ${S.cycle ? `<div class="panel"><div class="ph"><h2>${past ? 'ירד' : 'יירד'} ב-${gDate(S.cycle)} (${hDate(S.cycle)})</h2><b>${M(total)}</b></div>
+    <div class="months" style="margin:0 -16px">${cycles.slice().reverse().map(d => `<button class="mt ${d === S.cycle ? 'on' : ''}" onclick="S.cycle='${d}';render()">${sel === 'all' ? (d > today ? 'יורד' : 'ירד') : cycleLabel(...sel.split('|'), d)} ${gDate(d)}</button>`).join('')}</div></div>
+  ${S.cycle ? `<div class="panel"><div class="ph"><h2>${!past ? 'יירד' : sel !== 'all' && cycleLabel(...sel.split('|'), S.cycle) === 'עוד לא ירד' ? 'היה אמור לרדת, עוד לא ירד מהבנק,' : 'ירד'} ב-${gDate(S.cycle)} (${hDate(S.cycle)})</h2><b>${M(total)}</b></div>
     <div class="muted">${items.length} עסקאות${sel === 'all' ? ', כל הכרטיסים' : ', ' + esc(cardLabel(...sel.split('|')))}${bills.length ? `. בעו"ש ירד באותו תאריך: ${bills.map(b => `${esc(b.description)} ${M(-b.amount)}`).join(', ')}` : ''}</div>
     ${Object.keys(byCat).length ? `<div style="margin:8px 0">${Object.entries(byCat).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<span class="tag gr" style="margin:2px">${esc(k)} ${M0(v)}</span>`).join('')}</div>` : ''}
     ${items.map(b => { const c = catById(b.tcat); return `<div class="row ${b.ttype || 'expense'}" onclick="${b.tx_id ? `openTxAny(${b.tx_id})` : ''}"><div class="ic" style="background:${b.ttype === 'maaser' ? 'var(--maa-soft)' : (c?.color || '#94A3B8') + '1F'}">${b.ttype === 'maaser' ? '🪙' : (c?.icon || '•')}</div>
@@ -768,7 +868,7 @@ function endLabel(r, rem) { if (!rem) return 'הסתיים'; const t = new Date(
 function oblHTML() {
   const rec = (S.boot.recurring || []).filter(r => r.active !== 0);
   const debts = rec.filter(r => r.kind === 'debt').map(r => { const rem = remainingNow(r); const bal = r.balance != null ? Math.max(0, r.balance - (r.remaining - rem) * r.amount) : (rem || 0) * r.amount; return { r, rem, bal }; });
-  const fixed = rec.filter(r => r.kind !== 'debt');
+  const fixed = rec.filter(r => r.kind !== 'debt' && r.kind !== 'income');
   const mD = debts.filter(x => x.rem > 0).reduce((a, x) => a + x.r.amount, 0), mF = fixed.reduce((a, r) => a + r.amount, 0);
   const bT = debts.reduce((a, x) => a + (x.r.balance == null && x.r.name.includes('משכנתא') ? 0 : x.bal), 0);
   return `<div class="panel"><div class="ph"><h2>התחייבויות חודשיות</h2></div>
